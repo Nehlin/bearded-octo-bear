@@ -5,6 +5,4 @@ lazy val root = (project in file(".")).
     scalaVersion := "2.11.4"
   )
 
-libraryDependencies += "dk.brics.automaton" % "automaton" % "1.11-8"
-
 libraryDependencies += "org.scala-lang.modules" %% "scala-xml" % "1.0.2"

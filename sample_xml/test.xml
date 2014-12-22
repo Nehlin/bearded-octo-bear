@@ -4,44 +4,17 @@
       <state type="initial">A</state>
       <state>B</state>
       <state>C</state>
+      <state>D</state>
+      <state>E</state>
+      <state>F</state>
+      <state>G</state>
+      <state>H</state>
+      <state>I</state>
     </states>
 
-    <rule id="A -!> A">
+    <rule id="A -!> B">
       <pre>
         <current_state>A</current_state>
-      </pre>
-      <post>
-        <send_message></send_message>
-        <next_state>A</next_state>
-        <channel></channel>
-      </post>
-    </rule>
-
-    <rule id="A -!> C">
-      <pre>
-        <current_state>A</current_state>
-      </pre>
-      <post>
-        <send_message></send_message>
-        <next_state>C</next_state>
-        <channel></channel>
-      </post>
-    </rule>
-
-    <rule id="A -?> B">
-      <pre>
-        <current_state>A</current_state>
-        <received_message></received_message>
-        <channel></channel>
-      </pre>
-      <post>
-        <next_state>B</next_state>
-      </post>
-    </rule>
-
-    <rule id="B -!> B">
-      <pre>
-        <current_state>B</current_state>
       </pre>
       <post>
         <send_message></send_message>
@@ -61,36 +34,72 @@
       </post>
     </rule>
 
-    <rule id="C -?> C">
+    <rule id="C -!> D">
       <pre>
         <current_state>C</current_state>
-        <received_message></received_message>
-        <channel></channel>
       </pre>
       <post>
-        <next_state>C</next_state>
+        <send_message></send_message>
+        <next_state>D</next_state>
+        <channel></channel>
       </post>
     </rule>
 
-    <rule id="C -?> A">
-      <pre>
-        <current_state>C</current_state>
-        <received_message></received_message>
-        <channel></channel>
-      </pre>
-      <post>
-        <next_state>A</next_state>
-      </post>
-    </rule>
-
-    <rule id="B -> A">
+    <rule id="B -!> E">
       <pre>
         <current_state>B</current_state>
       </pre>
       <post>
-        <next_state>A</next_state>
+        <send_message></send_message>
+        <next_state>E</next_state>
+        <channel></channel>
       </post>
     </rule>
+
+    <rule id="A -!> F">
+      <pre>
+        <current_state>A</current_state>
+      </pre>
+      <post>
+        <send_message></send_message>
+        <next_state>F</next_state>
+        <channel></channel>
+      </post>
+    </rule>
+
+    <rule id="G -!> H">
+      <pre>
+        <current_state>G</current_state>
+      </pre>
+      <post>
+        <send_message></send_message>
+        <next_state>H</next_state>
+        <channel></channel>
+      </post>
+    </rule>
+
+    <rule id="H -?> G">
+      <pre>
+        <current_state>H</current_state>
+        <received_message></received_message>
+        <channel></channel>
+      </pre>
+      <post>
+        <next_state>G</next_state>
+      </post>
+    </rule>
+
+    <rule id="H -!> I">
+      <pre>
+        <current_state>H</current_state>
+      </pre>
+      <post>
+        <send_message></send_message>
+        <next_state>I</next_state>
+        <channel></channel>
+      </post>
+    </rule>
+
 
   </role>
 </protocol>
