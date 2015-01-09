@@ -4,11 +4,55 @@ import scala.xml.{Node, NodeSeq}
 import scala.collection.mutable.{Map => MMap}
 import scala.collection.mutable.{Set => MSet}
 
-class Automaton(sMap: Map[String, State], i:Option[Int]) {
+class Automaton(sMap: Map[String, State], t: Set[Transition], iName: Option[String], i: Option[Int]) {
 
-  var initialState: State = _
-  val index: Option[Int] = i
+  val initialName = iName
+  val index = i
   val stateMap = sMap
+  val transitions = t
+
+  def initialState: Option[State] = initialName match {
+    case Some(name) => Some(stateMap(name))
+    case _ => None
+  }
+
+  def addTransitions(addedTransitions: Set[Transition]): Automaton = {
+    val newTransitions = transitions ++ addedTransitions
+    val newStates = states.map(_.copy)
+    val newStateMap = newStates.map(state => (state.name, state)).toMap
+
+    new Automaton(newStateMap, newTransitions, initialName, index)
+  }
+
+  def from(transition: Transition): State = {
+    stateMap(transition.from)
+  }
+
+  def to(transition: Transition): State = {
+    stateMap(transition.to)
+  }
+
+  def transitions(state: State): Set[Transition] = {
+    transitions.filter(t => t.from == state.name)
+  }
+
+  def sendTransitions: Set[Transition] = {
+    transitions.filter(s_t => s_t.condition.isInstanceOf[Send])
+  }
+
+  def receiveTransitions: Set[Transition] = {
+    transitions.filter(s_t => s_t.condition.isInstanceOf[Receive])
+  }
+
+  def transpose: Automaton = {
+    val newMap = states.map(state => (state.name, state.copy)).toMap
+    val newTransitions = transitions.map(transition => {
+      new Transition(to(transition), from(transition), transition.condition)
+    })
+    val newIndex = index
+
+    new Automaton(newMap, newTransitions, initialName, newIndex)
+  }
 
   def dfs (states: Array[State],
            action: Option[((State, State)=>Unit)]): Map[State, (Int, Int)] = {
@@ -26,8 +70,8 @@ class Automaton(sMap: Map[String, State], i:Option[Int]) {
       seen.add(u)
       time += 1
       discovered(u) = time
-      for (t <- u.transitions) {
-        val v = t.to
+      for (t <- transitions(u)) {
+        val v = to(t)
         if (!seen.contains(v)) {
           visit(startState, v)
         }
@@ -44,53 +88,26 @@ class Automaton(sMap: Map[String, State], i:Option[Int]) {
     states.map(s => (s, (discovered(s), finished(s)))).toMap
   }
 
-  def transitions: Set[(State, Transition)] = {
-    val ack = MSet[(State, Transition)]()
-    for (s <- stateMap.values) {
-      for (t <- s.transitions) {
-        ack.add((s, t))
-      }
-    }
-    ack.toSet
-  }
-
-  def sendTransitions: Set[(State, Transition)] = {
-    transitions.filter(s_t => s_t._2.condition.isInstanceOf[Send])
-  }
-
-  def receiveTransitions: Set[(State, Transition)] = {
-    transitions.filter(s_t => s_t._2.condition.isInstanceOf[Receive])
-  }
-
-  def transpose: Automaton = {
-    val automatonCopy = copy
-    val oldTransitions = automatonCopy.transitions
-
-    for (s <- automatonCopy.states)
-      s.removeTransitions()
-
-    for ((from, transition) <- oldTransitions) {
-      val fromName = from.name
-      val toName = transition.to.name
-      val condition = transition.condition
-
-      val newFrom = automatonCopy.stateMap(toName)
-      val newTo = automatonCopy.stateMap(fromName)
-
-      val newTransition = new Transition(newFrom, newTo, condition)
-    }
-    automatonCopy
-  }
-
   def reachableStates: Set[State] = {
+    if (initialState.isEmpty) {
+      throw new RuntimeException("No initial state specified when searching for reachable states.")
+    }
+
     val ackSet = MSet[State]()
-    val initialArray = Array[State](initialState)
+    val initialArray = Array[State](initialState.get)
 
     def f (x:State, s:State) : Unit = ackSet.add(s)
 
     dfs(initialArray, Some(f))
 
     ackSet.toSet
+  }
+
+  def reachableCopy: Automaton = {
+    // TODO: fix this
+    val automatonCopy = copy
+
+    automatonCopy
   }
 
   def scc: Set[Set[State]] = {
@@ -106,9 +123,8 @@ class Automaton(sMap: Map[String, State], i:Option[Int]) {
 
     // Create array containing the states from the transposed automaton,
     // ordered as in orderedNameArr
-    println(stateMap)
-    val transposedMap = transpose.stateMap
-    println(transposedMap)
+    val transposedAutomaton = transpose
+    val transposedMap = transposedAutomaton.stateMap
     val orderedStateArr = orderedNameArr.map(transposedMap(_))
 
     val resultMap = MMap[String, MSet[State]]()
@@ -123,19 +139,25 @@ class Automaton(sMap: Map[String, State], i:Option[Int]) {
       resultMap(startName).add(originalState)
     }
 
-    dfs(orderedStateArr, Some(f))
+    transposedAutomaton.dfs(orderedStateArr, Some(f))
+
     resultMap.values.map(_.toSet).toSet
   }
 
   def states: Set[State] = stateMap.values.toSet
 
   def sortedStates: Array[State] = states.toArray.sortBy(_.name)
+  def sortedTransitions(state: State) : Array[Transition] = {
+    transitions(state).toArray.sortBy(_.toString)
+  }
 
   override def toString = {
     val states = sortedStates
 
-    val nameString = "initial state: " + initialState.name + "\n"
-    val stateString = (for (state <- states) yield state.toString).mkString
+    val nameString = initialName match {case Some(n) => "initial state: " + n + "\n" case _ => ""}
+    val stateString = states.map(state => {
+      state + ":\n" + transitions(state).map(t => t + "\n").mkString
+    }).mkString
 
     nameString + stateString
   }
@@ -144,52 +166,44 @@ class Automaton(sMap: Map[String, State], i:Option[Int]) {
     copy(None)
   }
 
+  // If newIndex is set, all states and the automaton will have index = newIndex
+  // otherwise, they copy the (possibly empty) index from the previous automaton
   def copy(newIndex: Option[Int]): Automaton = {
 
-    def nameFun(oldName: String): String = {
+    val newStates = states.map(oldState => {
       newIndex match {
-        case Some(newI) => Automaton.nameFromIndex(oldName, newI)
-        case None => oldName
+        case Some(ind) => new State(oldState.nameString, Some(ind))
+        case _ => oldState.copy
       }
+    })
+
+    val newStateMap = newStates.map(state => (state.name, state)).toMap
+    val newTransitions = newIndex match {
+      case Some(nInd) => transitions.map(_.copy(nInd))
+      case _ => transitions.map(_.copy)
     }
 
-    val stateNames = states.map(_.name)
-    val newStateMap = stateNames.map(name => {
-      val newName = nameFun(name)
-      (newName, new State(newName))
-    }).toMap
+    val newInd = if (newIndex.isDefined) newIndex else index
 
-    for (oldState <- states) {
-      val newState = newStateMap(nameFun(oldState.name))
-
-      for (oldTransition <- oldState.transitions) {
-        val oldTransitionToName = oldTransition.to.name
-        val oldTransitionCond = oldTransition.condition
-
-        val newStateTo = newStateMap(nameFun(oldTransitionToName))
-
-        new Transition(newState, newStateTo, oldTransitionCond)
-      }
+    val newInitialName = initialName match {
+      case Some(name) => Some(State.name(name, newIndex))
+      case _ => None
     }
 
-    val copyIndex = if(newIndex.isDefined) newIndex else index
-    val automatonCopy = new Automaton(newStateMap, copyIndex)
-
-    automatonCopy.initialState = newStateMap(nameFun(initialState.name))
-    automatonCopy
+    new Automaton(newStateMap, newTransitions, newInitialName, newInd)
   }
 
+  def transitionsInSet(states: Set[State]): Set[Transition] = {
+    transitions.filter(t => states.contains(from(t)) && states.contains(to(t)))
+  }
 
   def filterCopy (newIndex: Option[Int], filterFun: (Transition => Boolean)): Automaton = {
 
-    val automatonCopy = copy(newIndex)
-    for (state <- automatonCopy.states) {
+    val newStateMap = stateMap.map{case (key, state) => (key, state.copy)}
+    val newTransitions = transitions.filter(t => !filterFun(t))
+    val newInd = if (newIndex.isDefined) newIndex else index
 
-      for (transition <- state.transitions.filter(filterFun)) {
-        state.removeTransition(transition)
-      }
-    }
-    automatonCopy
+    new Automaton(newStateMap, newTransitions, initialName, newInd)
   }
 
   def sendCopy: Automaton = filterCopy(None, t => t.condition.isInstanceOf[Receive])
@@ -199,6 +213,11 @@ class Automaton(sMap: Map[String, State], i:Option[Int]) {
 }
 
 object Automaton {
+
+  def makeStateMap(states: Set[State]): Map[String, State] = {
+    states.map(state => (state.name, state)).toMap
+  }
+
   private def getInitialStateName(states: NodeSeq): String = {
     if (states.isEmpty)
       throw new RuntimeException("No initial state found")
@@ -240,11 +259,10 @@ object Automaton {
   def fromXml(process: Node): Automaton = {
 
     val states = process \ "states" \ "state"
-    val stateMap = states.map(s => (s.child.text, new State(s.child.text))).toMap
+    val stateMap = states.map(s => (s.child.text, new State(s.child.text, None))).toMap
 
     val rules = process \\ "rule"
-    for (rule <- rules) {
-
+    val transitions = rules.map(rule => {
       val fromStateName = (rule \\ "pre" \\ "current_state").head.child.text
       val toStateName = (rule \\ "post" \\ "next_state").head.child.text
 
@@ -252,51 +270,38 @@ object Automaton {
       val toState = stateMap(toStateName)
 
       val tRule = getRule(rule)
-      val transition = new Transition(fromState, toState, tRule)
-    }
+      new Transition(fromState, toState, tRule)
+    }).toSet
 
-    val automaton = new Automaton(stateMap, None)
+    val initialStateName = getInitialStateName(states)
 
-    val initialState = stateMap(getInitialStateName(states))
-    automaton.initialState = initialState
-
-    automaton
+    new Automaton(stateMap, transitions, Some(initialStateName), None)
   }
 
-  def transitionsInSet(states: Set[State]): Set[Transition] = {
-    val transitions = MSet[Transition]()
-    for (state <- states) {
-      for (transition <- state.transitions) {
-        if (states.contains(transition.to)) {
-          transitions.add(transition)
-        }
-      }
-    }
-    transitions.toSet
-  }
 
-  def nameFromIndex(rawName: String, ind: Int): String = {
-    rawName + "_" + ind
-  }
-
-  /* NOTE: both automatons need to be indexed. Result automaton index = index of 2nd */
+  /* NOTE: both automatons need to be indexed. Result automaton index = index of 2nd
+   * NOTE: transition source for the transitions between automaton1 and automaton2 are
+   * the states in automaton1 where (nameString, index) are the nameStrings from
+   * 'transitions.State' and index is from automaton1.index */
   def combine(automaton1: Automaton,
               automaton2: Automaton,
-              transitions: Set[(State, Transition)]): (Automaton, Set[Transition]) = {
+              transitions: Set[Transition]): (Automaton, Set[Transition]) = {
 
-    val automaton1copy = automaton1.copy
-    val automaton2copy = automaton2.copy
-    val states = automaton1copy.states ++ automaton2copy.states
+
+    val states = automaton1.states ++ automaton2.states
     val stateMap = states.map(state => (state.name, state)).toMap
 
     val newTransitions = MSet[Transition]()
 
-    if (automaton1copy.index.isEmpty || automaton2copy.index.isEmpty)
+    if (automaton1.index.isEmpty || automaton2.index.isEmpty)
       throw new RuntimeException("combined automatons must be indexed.")
 
-    for ((state, transition) <- transitions) {
-      val fromName = nameFromIndex(state.name, automaton1copy.index.get)
-      val toName = nameFromIndex(transition.to.name, automaton2copy.index.get)
+    val index1 = automaton1.index.get
+    val index2 = automaton2.index.get
+
+    for (transition <- transitions) {
+      val fromName = transition.from(index1)
+      val toName = transition.to(index2)
 
       val fromState = stateMap(fromName)
       val toState = stateMap(toName)
@@ -306,8 +311,9 @@ object Automaton {
       newTransitions.add(newTransition)
     }
 
-    val combined = new Automaton(stateMap, automaton2copy.index)
-    combined.initialState = automaton1copy.initialState
+    val allTransitions = automaton1.transitions ++ automaton2.transitions ++ newTransitions
+    val combined = new Automaton(stateMap, allTransitions, automaton1.initialName, automaton2.index)
+
     (combined, newTransitions.toSet)
   }
 }

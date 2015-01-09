@@ -1,0 +1,99 @@
+<protocol name="Simple" medium="STUTT_FIFO" capacity="4">
+  <role name="SENDER">
+    <states>
+      <state type="initial">A</state>
+      <state>C</state>
+      <state>F</state>
+      <state>G</state>
+    </states>
+
+    <rule id="A -!> A">
+      <pre>
+        <current_state>A</current_state>
+      </pre>
+      <post>
+        <send_message>d</send_message>
+        <next_state>A</next_state>
+        <channel></channel>
+      </post>
+    </rule>
+
+    <rule id="A -!> F">
+      <pre>
+        <current_state>A</current_state>
+      </pre>
+      <post>
+        <send_message>d</send_message>
+        <next_state>F</next_state>
+        <channel></channel>
+      </post>
+    </rule>
+
+    <rule id="A -!> G">
+      <pre>
+        <current_state>A</current_state>
+      </pre>
+      <post>
+        <send_message>a</send_message>
+        <next_state>G</next_state>
+        <channel></channel>
+      </post>
+    </rule>
+
+    <rule id="F -!> G">
+      <pre>
+        <current_state>F</current_state>
+      </pre>
+      <post>
+        <send_message>d</send_message>
+        <next_state>G</next_state>
+        <channel></channel>
+      </post>
+    </rule>
+
+    <rule id="A -!> C">
+      <pre>
+        <current_state>A</current_state>
+      </pre>
+      <post>
+        <send_message>b</send_message>
+        <next_state>C</next_state>
+        <channel></channel>
+      </post>
+    </rule>
+
+    <rule id="C -!> A">
+      <pre>
+        <current_state>C</current_state>
+      </pre>
+      <post>
+        <send_message>a</send_message>
+        <next_state>A</next_state>
+        <channel></channel>
+      </post>
+    </rule>
+
+    <rule id="C -?> C">
+      <pre>
+        <current_state>C</current_state>
+        <received_message></received_message>
+        <channel></channel>
+      </pre>
+      <post>
+        <next_state>C</next_state>
+      </post>
+    </rule>
+
+    <rule id="C -?> A">
+      <pre>
+        <current_state>C</current_state>
+        <received_message></received_message>
+        <channel></channel>
+      </pre>
+      <post>
+        <next_state>A</next_state>
+      </post>
+    </rule>
+
+  </role>
+</protocol>

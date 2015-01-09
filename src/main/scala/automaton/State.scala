@@ -1,17 +1,28 @@
 package automaton
 
-class State(n:String) {
-  val name = n
-  var transitions = scala.collection.mutable.Set[Transition]()
+class State(n:String, ind:Option[Int]) {
+  val nameString = n
+  val index = ind
 
-  def addTransition(t:Transition) = transitions += t
-  def removeTransition(t:Transition) = transitions -= t
-  def removeTransitions() = transitions = scala.collection.mutable.Set[Transition]()
-  def sortedTransitions : Array[Transition] = transitions.toArray.sortBy(_.toString)
+  def name: String = State.name(nameString, index)
+
+  def copyName(copyIndex:Option[Int]): String = copyIndex match {
+    case Some(i) => State.name(nameString, copyIndex)
+    case _ => name
+  }
 
   override def toString = {
-    val nStr = name + " :\n"
-    val tStr = (for (t <- transitions) yield "  " + t + "\n").mkString
-    nStr + tStr
+    name
+  }
+
+  def copy: State = {
+    new State(nameString, index)
+  }
+}
+
+object State {
+  def name(nameString: String, paramIndex: Option[Int]): String = paramIndex match {
+    case Some(i) => nameString + "_" + i
+    case _ => nameString
   }
 }

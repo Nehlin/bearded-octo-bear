@@ -13,12 +13,38 @@ case class Nop() extends TransitionCondition('N') {
   override def toString = {"Nop"}
 }
 
-class Transition(f: State, t: State, cond: TransitionCondition) {
-  val from = f
-  val to = t
+// TODO: remove this
+class Test(fe: String, te: String, ind: Int) {
+  val f = fe
+  val t = te
+  val index = ind
+
+  override def toString = f + " " + t + " " + index
+}
+
+class Transition(fName: String, fIndex: Option[Int], tName: String, tIndex: Option[Int], cond: TransitionCondition) {
+
+  def this(fState: State, tState: State, cond: TransitionCondition) = {
+    this(fState.nameString, fState.index, tState.nameString, tState.index, cond)
+  }
+
+  def this(fName: String, tName: String, cond: TransitionCondition) = {
+    this(fName, None, tName, None, cond)
+  }
+
+  val fromName = fName
+  val fromIndex = fIndex
+  val toName = tName
+  val toIndex = tIndex
   val condition = cond
 
-  f.addTransition(this)
+  def from(fIndex: Int) = State.name(fromName, Some(fIndex))
+  def from = State.name(fromName, fromIndex)
+  def to(tIndex: Int) = State.name(toName, Some(tIndex))
+  def to = State.name(toName, toIndex)
 
-  override def toString = from.name + " =" + cond + "=> " + to.name
+  def copy: Transition = new Transition(fromName, fromIndex, toName, toIndex, condition)
+  def copy(newIndex: Int): Transition = new Transition(fromName, Some(newIndex), toName, Some(newIndex), condition)
+
+  override def toString = from + " =" + cond + "=> " + to
 }

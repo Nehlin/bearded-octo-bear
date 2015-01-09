@@ -3,31 +3,46 @@ package automaton
 object Dot {
   def highlightScc(automaton: Automaton) : String = {
     val scc = automaton.scc
-    val highlighted = scc.map(Automaton.transitionsInSet).flatten
+    val highlighted = scc.map(automaton.transitionsInSet).flatten
 
-    makeHighlighted(automaton, highlighted)
+    def transitionFun(transition: Transition): String = {
+      if (highlighted.contains(transition)) {
+        normalTransition(transition)
+      } else {
+        dottedTransition(transition)
+      }
+    }
+
+    make(automaton, transitionFun, normalState)
   }
 
-  def makeHighlighted(automaton: Automaton, transitions: Set[Transition]) : String = {
+  def makeHighlighted(automaton: Automaton, transitions: Set[Transition], reachableStates: Option[Set[String]]) : String = {
     val transitionStrings = transitions.map(_.toString)
 
-    def transitionFun(state: State, transition: Transition): String = {
-      if (transitionStrings.contains(transition.toString)) {
-        normalTransition(state, transition)
+    def transitionFun(transition: Transition): String = {
+      val state = automaton.from(transition)
+
+      if (state.index.isEmpty || transitionStrings.contains(transition.toString)) {
+        normalTransition(transition)
       } else {
-        if (transition.from.name.split('_')(1).toInt % 2 == 0)
-          makeTransition(state, transition, None, Some("red"))
+        if (state.index.get % 2 == 0)
+          makeTransition(transition, None, Some("red"))
         else
-          makeTransition(state, transition, None, Some("green"))
+          makeTransition(transition, None, Some("green"))
       }
     }
 
     def stateFun(state: State, automaton: Automaton): String = {
-      val stateIndex = state.name.toString.split('_')(1).toInt
-      if (stateIndex % 2 == 0)
-        makeState(state, automaton, None, Some("red"))
-      else
-        makeState(state, automaton, None, Some("green"))
+      val nameSplit = state.name.toString.split('_')
+      if (nameSplit.length > 1) {
+        val style = if (reachableStates.isDefined && reachableStates.get.contains(state.name)) Some("bold") else Some("dotted")
+        val stateIndex = nameSplit(1).toInt
+        if (stateIndex % 2 == 0)
+          makeState(state, automaton, style, Some("red"))
+        else
+          makeState(state, automaton, style, Some("green"))
+      } else
+        normalState(state, automaton)
     }
 
     make(automaton, transitionFun, stateFun)
@@ -38,7 +53,7 @@ object Dot {
   }
 
   def make(automaton: Automaton,
-                    transitionFunction: ((State, Transition) => String),
+                    transitionFunction: ((Transition) => String),
                     stateFunction: ((State, Automaton) => String)) : String = {
 
     var s = "digraph Automaton {\n"
@@ -48,10 +63,10 @@ object Dot {
     for (state <- states) {
       s = s + stateFunction(state, automaton)
 
-      val transitions = state.sortedTransitions
+      val transitions = automaton.sortedTransitions(state)
 
       for (transition <- transitions) {
-        s = s + transitionFunction(state, transition)
+        s = s + transitionFunction(transition)
       }
     }
     s + "}\n"
@@ -79,31 +94,31 @@ object Dot {
       "\"];\n"
 
 
-    if (state == automaton.initialState) {
+    if (automaton.initialState.isDefined && state == automaton.initialState.get) {
       s += "  initial [shape=plaintext,label=\"\"];\n"
       s += "  initial -> " + state.name + "\n"
     }
     s
   }
 
-  private def dottedTransition(fromState: State, transition: Transition) : String = {
-    makeTransition(fromState, transition, Some("dashed"), None)
+  private def dottedTransition(transition: Transition) : String = {
+    makeTransition(transition, Some("dashed"), None)
   }
 
-  private def fatTransition(fromState: State, transition: Transition) : String = {
-    makeTransition(fromState, transition, Some("bold"), None)
+  private def fatTransition(transition: Transition) : String = {
+    makeTransition(transition, Some("bold"), None)
   }
 
-  private def normalTransition(fromState: State, transition: Transition) : String = {
-    makeTransition(fromState, transition, None, None)
+  private def normalTransition(transition: Transition) : String = {
+    makeTransition(transition, None, None)
   }
 
-  private def makeTransition(fromState: State,
-                             transition: Transition,
+  private def makeTransition(transition: Transition,
                              style: Option[String],
                              colour: Option[String]) : String  = {
-    val from = fromState.name
-    val to = transition.to.name
+
+    val from = transition.from
+    val to = transition.to
     val label = transition.condition
 
     (style, colour) match {
