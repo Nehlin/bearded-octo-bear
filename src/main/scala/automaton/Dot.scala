@@ -35,7 +35,11 @@ object Dot {
     def stateFun(state: State, automaton: Automaton): String = {
       val nameSplit = state.name.toString.split('_')
       if (nameSplit.length > 1) {
-        val style = if (reachableStates.isDefined && reachableStates.get.contains(state.name)) Some("bold") else Some("dotted")
+        val style = if (reachableStates.isEmpty || reachableStates.get.contains(state.name)) {
+          Some("bold")
+        } else {
+          Some("dotted")
+        }
         val stateIndex = nameSplit(1).toInt
         if (stateIndex % 2 == 0)
           makeState(state, automaton, style, Some("red"))

@@ -4,15 +4,20 @@ import scala.xml.{Node, NodeSeq}
 import scala.collection.mutable.{Map => MMap}
 import scala.collection.mutable.{Set => MSet}
 
-class Automaton(sMap: Map[String, State], t: Set[Transition], iName: Option[String], i: Option[Int]) {
+class Automaton(sMap: Map[String, State], t: Set[Transition], iName: Option[(String, Option[Int])], i: Option[Int]) {
 
   val initialName = iName
   val index = i
   val stateMap = sMap
   val transitions = t
 
+  def initialIndex: Option[Int] = initialName match {
+    case Some((_, Some(ind))) => Some(ind)
+    case _ => None
+  }
+
   def initialState: Option[State] = initialName match {
-    case Some(name) => Some(stateMap(name))
+    case Some((name, initialInd)) => Some(stateMap(State.name(name, initialInd)))
     case _ => None
   }
 
@@ -104,10 +109,14 @@ class Automaton(sMap: Map[String, State], t: Set[Transition], iName: Option[Stri
   }
 
   def reachableCopy: Automaton = {
-    // TODO: fix this
-    val automatonCopy = copy
+    val rStates = reachableStates
+    val newStateMap = rStates.map(state => (state.name, state.copy)).toMap
 
-    automatonCopy
+    val newTransitions = transitions.filter(transition => {
+      newStateMap.contains(transition.from) && newStateMap.contains(transition.to)
+    }).map(_.copy)
+
+    new Automaton(newStateMap, newTransitions, initialName, index)
   }
 
   def scc: Set[Set[State]] = {
@@ -154,9 +163,9 @@ class Automaton(sMap: Map[String, State], t: Set[Transition], iName: Option[Stri
   override def toString = {
     val states = sortedStates
 
-    val nameString = initialName match {case Some(n) => "initial state: " + n + "\n" case _ => ""}
+    val nameString = initialState match {case Some(n) => "initial state: " + n + "\n" case _ => ""}
     val stateString = states.map(state => {
-      state + ":\n" + transitions(state).map(t => t + "\n").mkString
+      state + ":\n" + transitions(state).map(t => "  " + t + "\n").mkString
     }).mkString
 
     nameString + stateString
@@ -185,9 +194,9 @@ class Automaton(sMap: Map[String, State], t: Set[Transition], iName: Option[Stri
 
     val newInd = if (newIndex.isDefined) newIndex else index
 
-    val newInitialName = initialName match {
-      case Some(name) => Some(State.name(name, newIndex))
-      case _ => None
+    val newInitialName = (newIndex, initialName) match {
+      case (Some(newI), Some((name, _))) => Some(name, Some(newI))
+      case _ => initialName
     }
 
     new Automaton(newStateMap, newTransitions, newInitialName, newInd)
@@ -199,9 +208,12 @@ class Automaton(sMap: Map[String, State], t: Set[Transition], iName: Option[Stri
 
   def filterCopy (newIndex: Option[Int], filterFun: (Transition => Boolean)): Automaton = {
 
-    val newStateMap = stateMap.map{case (key, state) => (key, state.copy)}
+    val newInd = newIndex.orElse(index)
+    val newStateMap = stateMap.values.map{state => {
+      val ns = new State(state.nameString, newInd)
+      (ns.name, ns)
+    }}.toMap
     val newTransitions = transitions.filter(t => !filterFun(t))
-    val newInd = if (newIndex.isDefined) newIndex else index
 
     new Automaton(newStateMap, newTransitions, initialName, newInd)
   }
@@ -275,7 +287,7 @@ object Automaton {
 
     val initialStateName = getInitialStateName(states)
 
-    new Automaton(stateMap, transitions, Some(initialStateName), None)
+    new Automaton(stateMap, transitions, Some(initialStateName, None), None)
   }
 
 

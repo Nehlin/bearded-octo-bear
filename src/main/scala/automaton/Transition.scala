@@ -46,5 +46,6 @@ class Transition(fName: String, fIndex: Option[Int], tName: String, tIndex: Opti
   def copy: Transition = new Transition(fromName, fromIndex, toName, toIndex, condition)
   def copy(newIndex: Int): Transition = new Transition(fromName, Some(newIndex), toName, Some(newIndex), condition)
 
-  override def toString = from + " =" + cond + "=> " + to
+  //override def toString = from + " =" + cond + "=> " + to
+  override def toString = fromName + "|" + fromIndex.getOrElse("") + " =" + cond + "=> " + toName + "|" + toIndex.getOrElse("")
 }
