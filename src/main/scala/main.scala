@@ -15,6 +15,7 @@ object Y {
       args(0)
     } else {
       "sample_xml/simple_scc.xml"
+      "sample_xml/scc_example.xml"
     }
 
     val xml = XML.loadFile(filename)

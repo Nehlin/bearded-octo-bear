@@ -7,7 +7,7 @@ object Dot {
 
     def transitionFun(transition: Transition): String = {
       if (highlighted.contains(transition)) {
-        normalTransition(transition)
+        fatTransition(transition)
       } else {
         dottedTransition(transition)
       }

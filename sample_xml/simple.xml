@@ -83,17 +83,6 @@
       </post>
     </rule>
 
-    <rule id="E -?> E">
-      <pre>
-        <current_state>E</current_state>
-        <received_message></received_message>
-        <channel></channel>
-      </pre>
-      <post>
-        <next_state>E</next_state>
-      </post>
-    </rule>
-
     <rule id="B -> A">
       <pre>
         <current_state>B</current_state>

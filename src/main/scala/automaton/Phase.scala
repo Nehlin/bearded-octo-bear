@@ -35,7 +35,7 @@ object Phase {
       new Transition(fromName, rt.to, rt.condition)
     })
 
-    val (saturatedSend, saturationEndStates) = kSaturate(saturationValues.head, sendPart.copy(Some(0)))
+    val (saturatedSend, saturationEndStates) = kSaturate(saturationValues.head, sendPart.copy(0))
     addReceiveCondensed(saturatedSend, Set(), sendPart, saturationEndStates,
       receivePart, sendTransitions, receiveTransitions, 1, p, saturationValues.tail)
   }
@@ -62,7 +62,7 @@ object Phase {
     })
 
     val (newCombined, newTransitions) = Automaton.combine(combined,
-      receivePart.copy(Some(phase)), translatedCombineTransitions)
+      receivePart.copy(phase), translatedCombineTransitions)
 
     val allTransitions = combinedTransitions ++ newTransitions
     addSendCondensed(newCombined, allTransitions, condensedSendPart, receivePart, sendTransitions,
@@ -84,16 +84,19 @@ object Phase {
     }
 
     val (saturatedSend, saturationEndStates) =
-      kSaturate(saturationValues.head, condensedSendPart.copy(Some(phase)))
+      kSaturate(saturationValues.head, condensedSendPart.copy(phase))
 
     val (newCombined, newTransitions) = Automaton.combine(combined, saturatedSend, sendTransitions)
     val allTransitions = combinedTransitions ++ newTransitions
 
-    addReceiveCondensed(newCombined, allTransitions, condensedSendPart, saturationEndStates, receivePart, sendTransitions,
-      receiveTransitions, phase + 1, numPhases, saturationValues.tail)
+    addReceiveCondensed(newCombined, allTransitions, condensedSendPart, saturationEndStates, receivePart,
+      sendTransitions, receiveTransitions, phase + 1, numPhases, saturationValues.tail)
   }
 
   /**
+   * TODO: Figure out if transitions between condensed states are unique. Consider transitions A-x>C and B-x>D when
+   * combining (AB) and (CD). verify that there is one, not two transitions AB-x>CD
+   *
    * Condenses a send automaton by combining its strongly connected components to single states. For more information
    * on condensing, refer to the external documentation
    * 
@@ -111,6 +114,7 @@ object Phase {
     val translationMap = MMap[String, String]()
     val combinedMap = MMap[String, State]()
     val combinedTransitions = MSet[Transition]()
+    val existingTransitions = MSet[(String, String, TransitionCondition)]()
     var initialStateName: Option[(String, Option[Int])] = None
 
     def constructNewComponent(component:Set[State]): (Set[Transition]) = {
@@ -134,9 +138,20 @@ object Phase {
     // NOTE: must be called after all calls of constructNewComponent
     def translateTransitions(transitions: (Set[Transition])): Unit = {
 
-      for (transition <- transitions)
-        combinedTransitions +=
-          new Transition(translationMap(transition.from), translationMap(transition.to), transition.condition)
+      for (transition <- transitions) {
+        val newFrom = translationMap(transition.from)
+        val newTo = translationMap(transition.to)
+        val newCondition = transition.condition
+
+        val translatedTransition = new Transition(newFrom, newTo, newCondition)
+        val compareId = translatedTransition.compareId
+
+        if (!existingTransitions.contains(compareId) &&
+          !(newFrom == newTo && newCondition == Nop())) {
+          existingTransitions += compareId
+          combinedTransitions += translatedTransition
+        }
+      }
     }
 
     val transitions = automaton.scc.map(constructNewComponent)
@@ -273,7 +288,7 @@ object Phase {
     val sendTransitions = automaton.sendTransitions
     val receiveTransitions = automaton.receiveTransitions
 
-    addReceive(sendPart.copy(Some(1)), Set(), sendPart, receivePart, sendTransitions, receiveTransitions, 2, p)
+    addReceive(sendPart.copy(0), Set(), sendPart, receivePart, sendTransitions, receiveTransitions, 1, p)
   }
 
   def addSend(combined: Automaton,
@@ -288,7 +303,7 @@ object Phase {
     if (phase > numPhases) {
       (combined, addedTransitions)
     } else {
-      val (newCombined, newTransitions) = Automaton.combine(combined, sendPart.copy(Some(phase)), sendTransitions)
+      val (newCombined, newTransitions) = Automaton.combine(combined, sendPart.copy(phase), sendTransitions)
       val newAddedTransitions = addedTransitions ++ newTransitions
 
       addReceive(newCombined, newAddedTransitions, sendPart, receivePart, 
@@ -308,7 +323,7 @@ object Phase {
     if (phase > numPhases) {
       (combined, addedTransitions)
     } else {
-      val (newCombined, newTransitions) = Automaton.combine(combined, receivePart.copy(Some(phase)), receiveTransitions)
+      val (newCombined, newTransitions) = Automaton.combine(combined, receivePart.copy(phase), receiveTransitions)
       val newAddedTransitions = addedTransitions ++ newTransitions
 
       addSend(newCombined, newAddedTransitions, sendPart, receivePart, 

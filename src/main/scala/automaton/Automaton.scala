@@ -175,9 +175,13 @@ class Automaton(sMap: Map[String, State], t: Set[Transition], iName: Option[(Str
     copy(None)
   }
 
+  def copy(newIndex: Int): Automaton = {
+    copy(Some(newIndex))
+  }
+
   // If newIndex is set, all states and the automaton will have index = newIndex
   // otherwise, they copy the (possibly empty) index from the previous automaton
-  def copy(newIndex: Option[Int]): Automaton = {
+  private def copy(newIndex: Option[Int]): Automaton = {
 
     val newStates = states.map(oldState => {
       newIndex match {

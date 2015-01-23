@@ -46,6 +46,13 @@ class Transition(fName: String, fIndex: Option[Int], tName: String, tIndex: Opti
   def copy: Transition = new Transition(fromName, fromIndex, toName, toIndex, condition)
   def copy(newIndex: Int): Transition = new Transition(fromName, Some(newIndex), toName, Some(newIndex), condition)
 
-  //override def toString = from + " =" + cond + "=> " + to
-  override def toString = fromName + "|" + fromIndex.getOrElse("") + " =" + cond + "=> " + toName + "|" + toIndex.getOrElse("")
+  override def toString = from + " =" + cond + "=> " + to
+
+  /**
+   * A string for comparing equality between transitions. Iff t1.compareId == t2.compareId, t1 and t2 represent the
+   * same transition.
+   *
+   * @return the comparison string
+   */
+  def compareId = (from, to, condition)
 }
