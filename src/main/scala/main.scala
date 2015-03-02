@@ -15,13 +15,17 @@ object Y {
       args(0)
     } else {
       "sample_xml/simple_scc.xml"
-      "sample_xml/scc_example.xml"
+      //"sample_xml/scc_example.xml"
     }
+
 
     val xml = XML.loadFile(filename)
     val process = (xml \\ "protocol" \\ "role").head
 
     val original = Automaton.fromXml(process)
+    val normalised = original.normaliseNames
+    Files.write(Paths.get("dot/0original.dot"), Dot.make(original).getBytes(StandardCharsets.UTF_8))
+    Files.write(Paths.get("dot/0normalised.dot"), Dot.make(normalised).getBytes(StandardCharsets.UTF_8))
 
     val (combined, transitions) = Phase.makeCondensedPrint(original, 4, List(2, 1))
     val (condensedSend, _) = Phase.condenseSendAutomaton(original.sendCopy)
