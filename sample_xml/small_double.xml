@@ -1,0 +1,92 @@
+<protocol name="Simple" medium="STUTT_FIFO" capacity="4">
+  <role name="SENDER">
+    <states>
+      <state type="initial">A</state>
+      <state>B</state>
+    </states>
+
+    <rule id="A -!> A">
+      <pre>
+        <current_state>A</current_state>
+      </pre>
+      <post>
+        <send_message>hello</send_message>
+        <next_state>A</next_state>
+        <channel>chn_2</channel>
+      </post>
+    </rule>
+
+    <rule id="A -?> B">
+      <pre>
+        <current_state>A</current_state>
+        <received_message>hi</received_message>
+        <channel>chn_1</channel>
+      </pre>
+      <post>
+        <next_state>B</next_state>
+      </post>
+    </rule>
+
+    <rule id="B -!> B">
+      <pre>
+        <current_state>B</current_state>
+      </pre>
+      <post>
+        <send_message>hi</send_message>
+        <next_state>B</next_state>
+        <channel>chn_1</channel>
+      </post>
+    </rule>
+
+    <rule id="B -> A">
+      <pre>
+        <current_state>B</current_state>
+      </pre>
+      <post>
+        <next_state>A</next_state>
+      </post>
+    </rule>
+
+  </role>
+
+  <role name="RECEIVER">
+    <states>
+      <state type="initial">A</state>
+      <state>B</state>
+    </states>
+
+    <rule id="A -!> A">
+      <pre>
+        <current_state>A</current_state>
+      </pre>
+      <post>
+        <send_message>raaaawr</send_message>
+        <next_state>A</next_state>
+        <channel>chn_2</channel>
+      </post>
+    </rule>
+
+    <rule id="A -?> B">
+      <pre>
+        <current_state>A</current_state>
+        <received_message>hello_there</received_message>
+        <channel>chn_1</channel>
+      </pre>
+      <post>
+        <next_state>B</next_state>
+      </post>
+    </rule>
+
+    <rule id="B -!> B">
+      <pre>
+        <current_state>B</current_state>
+      </pre>
+      <post>
+        <send_message>hi</send_message>
+        <next_state>B</next_state>
+        <channel>chn_1</channel>
+      </post>
+    </rule>
+
+  </role>
+</protocol>

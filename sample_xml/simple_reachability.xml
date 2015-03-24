@@ -1,0 +1,66 @@
+<protocol name="Simple" medium="STUTT_FIFO" capacity="4">
+  <role name="SENDER">
+    <states>
+      <state type="initial">A</state>
+      <state>B</state>
+      <state>C</state>
+      <state>D</state>
+      <state>E</state>
+    </states>
+
+    <rule id="A -> A">
+      <pre>
+        <current_state>A</current_state>
+      </pre>
+      <post>
+        <next_state>A</next_state>
+      </post>
+    </rule>
+
+    <rule id="A -> B">
+      <pre>
+        <current_state>A</current_state>
+      </pre>
+      <post>
+        <next_state>B</next_state>
+      </post>
+    </rule>
+
+    <rule id="A -> C">
+      <pre>
+        <current_state>A</current_state>
+      </pre>
+      <post>
+        <next_state>C</next_state>
+      </post>
+    </rule>
+
+    <rule id="C -> D">
+      <pre>
+        <current_state>C</current_state>
+      </pre>
+      <post>
+        <next_state>D</next_state>
+      </post>
+    </rule>
+
+    <rule id="E -> C">
+      <pre>
+        <current_state>E</current_state>
+      </pre>
+      <post>
+        <next_state>C</next_state>
+      </post>
+    </rule>
+
+    <rule id="E -> D">
+      <pre>
+        <current_state>E</current_state>
+      </pre>
+      <post>
+        <next_state>D</next_state>
+      </post>
+    </rule>
+
+  </role>
+</protocol>

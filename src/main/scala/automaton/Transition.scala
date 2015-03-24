@@ -105,5 +105,5 @@ class Transition(fName: String, fIndex: Option[Int], tName: String, tIndex: Opti
    *
    * @return the comparison tuple.
    */
-  def compareId = (from, to, condition.toString)
+  def compareId = (from, to, condition)
 }

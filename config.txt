@@ -1,0 +1,3 @@
+z3=/Users/gordy/z3/bin/z3
+input=hej
+pres=y

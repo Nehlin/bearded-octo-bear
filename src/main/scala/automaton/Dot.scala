@@ -16,6 +16,20 @@ object Dot {
     make(automaton, transitionFun, normalState)
   }
 
+  def makeHl2(automaton: Automaton, transitions: Set[Transition]): String = {
+    val transitionStrings = transitions.map(_.toString)
+
+    def transitionFun(transition: Transition): String = {
+      if (transitionStrings.contains(transition.toString)) {
+        fatTransition(transition)
+      } else {
+        normalTransition(transition)
+      }
+    }
+
+    make (automaton, transitionFun, normalState)
+  }
+
   def makeHighlighted(automaton: Automaton, transitions: Set[Transition], reachableStates: Option[Set[String]]) : String = {
     val transitionStrings = transitions.map(_.toString)
 
@@ -57,8 +71,8 @@ object Dot {
   }
 
   def make(automaton: Automaton,
-                    transitionFunction: ((Transition) => String),
-                    stateFunction: ((State, Automaton) => String)) : String = {
+           transitionFunction: ((Transition) => String),
+           stateFunction: ((State, Automaton) => String)) : String = {
 
     var s = "digraph Automaton {\n"
     s = s + "  rankdir = LR;\n"

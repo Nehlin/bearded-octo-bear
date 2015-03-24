@@ -1,0 +1,96 @@
+<protocol name="Simple" medium="STUTT_FIFO" capacity="4">
+  <role name="SENDER">
+    <states>
+      <state type="initial">A</state>
+      <state>B</state>
+      <state>C</state>
+    </states>
+
+    <rule id="A -!> A">
+      <pre>
+        <current_state>A</current_state>
+      </pre>
+      <post>
+        <send_message>hejsan</send_message>
+        <next_state>A</next_state>
+        <channel>a_14</channel>
+      </post>
+    </rule>
+
+    <rule id="A -!> C">
+      <pre>
+        <current_state>A</current_state>
+      </pre>
+      <post>
+        <send_message>Halloj</send_message>
+        <next_state>C</next_state>
+        <channel>a_14</channel>
+      </post>
+    </rule>
+
+    <rule id="A -?> B">
+      <pre>
+        <current_state>A</current_state>
+        <received_message>gnorbo!</received_message>
+        <channel>x_100_</channel>
+      </pre>
+      <post>
+        <next_state>B</next_state>
+      </post>
+    </rule>
+
+    <rule id="B -!> B">
+      <pre>
+        <current_state>B</current_state>
+      </pre>
+      <post>
+        <send_message>gg</send_message>
+        <next_state>B</next_state>
+        <channel>game</channel>
+      </post>
+    </rule>
+
+    <rule id="B -!> C">
+      <pre>
+        <current_state>B</current_state>
+      </pre>
+      <post>
+        <send_message>no_re</send_message>
+        <next_state>C</next_state>
+        <channel>game</channel>
+      </post>
+    </rule>
+
+    <rule id="C -?> C">
+      <pre>
+        <current_state>C</current_state>
+        <received_message>omg_wai!</received_message>
+        <channel>internetz</channel>
+      </pre>
+      <post>
+        <next_state>C</next_state>
+      </post>
+    </rule>
+
+    <rule id="C -?> A">
+      <pre>
+        <current_state>C</current_state>
+        <received_message>hello</received_message>
+        <channel>a_10</channel>
+      </pre>
+      <post>
+        <next_state>A</next_state>
+      </post>
+    </rule>
+
+    <rule id="B -> A">
+      <pre>
+        <current_state>B</current_state>
+      </pre>
+      <post>
+        <next_state>A</next_state>
+      </post>
+    </rule>
+
+  </role>
+</protocol>

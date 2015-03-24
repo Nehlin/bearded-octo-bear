@@ -4,3 +4,5 @@ graph.dot
 .idea
 ABP.xml
 dot
+.DS_Store
+result

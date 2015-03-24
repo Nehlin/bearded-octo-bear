@@ -14,12 +14,17 @@ import scala.collection.mutable.{Set => MSet}
  * @param iName   Optional. The name (and possibly index) of the initial state.
  * @param i       Optional. The index of the automaton.
  */
-class Automaton(sMap: Map[String, State], t: Set[Transition], iName: Option[(String, Option[Int])], i: Option[Int]) {
+class Automaton(sMap: Map[String, State],
+                t: Set[Transition],
+                iName: Option[(String, Option[Int])],
+                i: Option[Int],
+                aName: String) {
 
   val initialName = iName
   val index = i
   val stateMap = sMap
   val transitions = t
+  val automatonName = aName
 
   /**
    * Returns the index of the initial state.
@@ -53,7 +58,7 @@ class Automaton(sMap: Map[String, State], t: Set[Transition], iName: Option[(Str
     val newStates = states.map(_.copy)
     val newStateMap = newStates.map(state => (state.name, state)).toMap
 
-    new Automaton(newStateMap, newTransitions, initialName, index)
+    new Automaton(newStateMap, newTransitions, initialName, index, automatonName)
   }
 
   /**
@@ -86,16 +91,26 @@ class Automaton(sMap: Map[String, State], t: Set[Transition], iName: Option[(Str
   }
 
   /**
-   * Returns the transitions of the automaton starting in a state in an array that is sorted. The actual ordering is
-   * not important, this is used mostly since the ordering of transitions and states affect the generated .dot-files
-   * and sorting the transitions according to any ordering guarantees that a certain graph always generate the same
-   * .dot-file.
+   * Returns all transitions starting in a certain state as a sorted array. The actual ordering is  not important, this
+   * is used mostly since the ordering of transitions and states affect the generated .dot-files and sorting the
+   * transitions according to any ordering guarantees that a certain graph always generate the same .dot-file.
    *
    * @param state   The start-state of the returned transitions
    * @return        All transitions starting in the state, in a sorted array.
    */
-  def sortedTransitions(state: State) : Array[Transition] = {
+  def sortedTransitions(state: State): Array[Transition] = {
     transitions(state).toArray.sortBy(_.toString)
+  }
+
+  /**
+   * Returns all transitions as a sorted array. The actual ordering is  not important, this is used mostly since the
+   * ordering of transitions and states affect the generated .dot-files and sorting the transitions according to any
+   * ordering guarantees that a certain graph always generate the same .dot-file.
+   *
+   * @return All transitions starting in the state, in a sorted array.
+   */
+  def sortedTransitions: Array[Transition] = {
+    transitions.toArray.sortBy(_.toString)
   }
 
   /**
@@ -136,7 +151,7 @@ class Automaton(sMap: Map[String, State], t: Set[Transition], iName: Option[(Str
     })
     val newIndex = index
 
-    new Automaton(newMap, newTransitions, initialName, newIndex)
+    new Automaton(newMap, newTransitions, initialName, newIndex, automatonName)
   }
 
   /**
@@ -259,7 +274,7 @@ class Automaton(sMap: Map[String, State], t: Set[Transition], iName: Option[(Str
       newStateMap.contains(transition.from) && newStateMap.contains(transition.to)
     }).map(_.copy)
 
-    new Automaton(newStateMap, newTransitions, initialName, index)
+    new Automaton(newStateMap, newTransitions, initialName, index, automatonName)
   }
 
   /**
@@ -268,12 +283,13 @@ class Automaton(sMap: Map[String, State], t: Set[Transition], iName: Option[(Str
   override def toString = {
     val states = sortedStates
 
+    val headerString = automatonName + (if (automatonName == "") "" else "\n")
     val nameString = initialState match {case Some(n) => "initial state: " + n + "\n" case _ => ""}
     val stateString = states.map(state => {
       state + ":\n" + transitions(state).map(t => "  " + t + "\n").mkString
     }).mkString
 
-    nameString + stateString
+    headerString + nameString + stateString
   }
 
   /**
@@ -324,7 +340,7 @@ class Automaton(sMap: Map[String, State], t: Set[Transition], iName: Option[(Str
       case _ => initialName
     }
 
-    new Automaton(newStateMap, newTransitions, newInitialName, newInd)
+    new Automaton(newStateMap, newTransitions, newInitialName, newInd, automatonName)
   }
 
   /**
@@ -354,7 +370,7 @@ class Automaton(sMap: Map[String, State], t: Set[Transition], iName: Option[(Str
     }}.toMap
     val newTransitions = transitions.filter(t => !filterFun(t))
 
-    new Automaton(newStateMap, newTransitions, initialName, index)
+    new Automaton(newStateMap, newTransitions, initialName, index, automatonName)
   }
 
   /**
@@ -371,7 +387,12 @@ class Automaton(sMap: Map[String, State], t: Set[Transition], iName: Option[(Str
    * Creates a copy of the automaton where all states are renamed to names that ensures that no name conflicts occur.
    * Note that you should always normalise the names unless the automaton is used to generate example graphs or
    * .dot-files, since the kinds of bugs that could result from not normalising would probably be unpredictable and
-   * hard to locate. For further discussion on this, see Automaton.makeIdentifier
+   * hard to locate. For further discussion on this, see Util.makeIdentifier
+   *
+   * State names are basically enumerated and given an index. This index is translated to a string which will be its
+   * name. In order to create names that are unique in the entire system (not just unique in the present automaton, but
+   * unique among all states in all automatons) an offset to this index can be supplied, and the number of states will
+   * also be returned so that this index can be updated for normalising the next automaton.
    *
    * Note that this function will create an automaton without any indices. This function is meant to be called after
    * the automaton is read from the xml.
@@ -379,12 +400,16 @@ class Automaton(sMap: Map[String, State], t: Set[Transition], iName: Option[(Str
    * The function will also return a map to translate the normalised names to the old names. As this is a 1 to 1-
    * conversion, the map can easily be reversed to translate old names to normalised.
    *
-   * @return A tuple containing the normalised automaton and the conversion map.
+   * @param startIndex  The offset for the state enumeration.
+   * @return            A tuple containing the normalised automaton, the conversion map and the number of states.
    */
   // NOTE: creates an automaton without indices as it should only be used on the initial xml-automaton.
-  def normaliseNames: (Automaton, Map[String, String]) = {
+  def normaliseNames(startIndex: Int): (Automaton, Map[String, String], Int) = {
     // Create map with old state name => new state name
-    val idMap = sortedStates.zipWithIndex.map {case (s, ind) => (s.name, Automaton.makeIdentifier(ind))}.toMap
+
+    val oldStates = sortedStates
+    val range = Stream from startIndex
+    val idMap = oldStates.zip(range).map {case (s, ind) => (s.name, Util.makeIdentifier(ind))}.toMap
 
     val newStates = states.map(oldState => {
       val newName = idMap(oldState.name)
@@ -404,38 +429,35 @@ class Automaton(sMap: Map[String, State], t: Set[Transition], iName: Option[(Str
       case _ => None
     }
 
-    val normalised = new Automaton(newStateMap, newTransitions, newInitialName, None)
+    val normalised = new Automaton(newStateMap, newTransitions, newInitialName, None, automatonName)
     val reversedMap = idMap.map(_.swap)
-    (normalised, reversedMap)
+    (normalised, reversedMap, newStates.size)
+  }
+
+  def renameTransitions(channelMap: Map[String, String], messageMap: Map[String, String]): Automaton = {
+    val newTransitions = transitions.map(transition => {
+      val fromName = transition.fromName
+      val fromIndex = transition.fromIndex
+      val toName = transition.toName
+      val toIndex = transition.toIndex
+      val condition = transition.condition match {
+        case Send(chn, msg) => Send(channelMap(chn), messageMap(msg))
+        case Receive(chn, msg) => Receive(channelMap(chn), messageMap(msg))
+        case Nop() => Nop()
+      }
+      new Transition(fromName, fromIndex, toName, toIndex, condition)
+    })
+
+    val newStateMap = Automaton.makeStateMap(states.map(_.copy))
+
+    new Automaton(newStateMap, newTransitions, initialName, index, automatonName)
   }
 }
 
 object Automaton {
 
-  /**
-   * Generates a unique and safe state name from an index.
-   *
-   * States should be renamed to ensure proper behaviour when generating new states. An automaton requires state names
-   * to be unique. Some new state names are automatically generated from existing ones and to ensure this does not
-   * cause name collisions, the names must follow a certain format. In order not to impose this limitation on the input
-   * format, the names are change.
-   *
-   * An example when this could otherwise cause a problem would be in the k-saturation. Consider a state called A in
-   * the XML. While working with generating the final automaton, this becomes a state with index 1. The name of this
-   * state would be A_1. Suppose that we k-saturating this state with k = 2, generating the states A0_1,
-   * A1_1. If another state from the XML would already be called A_1, A0_1 or A1_1, this would cause duplicate states.
-   *
-   * @param i Natural number representing the index of a state. Each number creates a unique state name
-   * @return  Unique and safe name for the index. Names are of the form A...Z, Aa...Az, Ba...Bz
-   */
-  def makeIdentifier(i: Int):String = {
-    val range = 'a' to 'z'
-
-    if (i < range.length) {
-      range(i).toUpper.toString
-    } else {
-      makeIdentifier(i / range.length - 1) + range(i % range.length)
-    }
+  def makeStateMap(states: Set[State]): Map[String, State] = {
+    states.map(state => (state.name, state)).toMap
   }
 
   /**
@@ -509,7 +531,8 @@ object Automaton {
 
     val initialStateName = getInitialStateName(states)
 
-    new Automaton(stateMap, transitions, Some(initialStateName, None), None)
+    val automatonName = (process \ "@name").toString()
+    new Automaton(stateMap, transitions, Some(initialStateName, None), None, automatonName)
   }
 
   /**
@@ -554,7 +577,8 @@ object Automaton {
     }
 
     val allTransitions = automaton1.transitions ++ automaton2.transitions ++ newTransitions
-    val combined = new Automaton(stateMap, allTransitions, automaton1.initialName, automaton2.index)
+    val combined = new Automaton(stateMap, allTransitions,
+      automaton1.initialName, automaton2.index, automaton1.automatonName)
 
     (combined, newTransitions.toSet)
   }
