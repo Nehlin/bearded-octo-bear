@@ -51,25 +51,51 @@ class Sys(xmlRoot:Node) {
   }
 
   def transitionFromVarName(varName: String): Transition = {
-    val split = varName.split('_')
-    if (split.length == 3) {
-      new Transition(split(0), split(2), new Nop())
-    } else {
-      val fromName = split(0)
-      val toName = split(4)
-      val channel = split(1)
-      val message = split(3)
-      val transitionCondition = if (split(2) == "Snd") {
-        new Send(channel, message)
+
+    def getStateComponents(arr: Array[String]): (String, Option[Int]) = {
+      if (arr.length == 1) {
+        (arr(0), None)
       } else {
-        new Receive(channel, message)
+        (arr(0), Some(arr(1).toInt))
       }
-      new Transition(fromName, toName, transitionCondition)
+    }
+
+    val split = varName.split('_')
+    if (split.contains("Nop")) {
+      val nopPos = split.indexOf("Nop")
+
+      val fromArr = split.slice(0, nopPos)
+      val toArr = split.slice(nopPos + 1, split.length)
+      val (fromName, fromIndex) = getStateComponents(fromArr)
+      val (toName, toIndex) = getStateComponents(toArr)
+
+      new Transition(fromName, fromIndex, toName, toIndex, Nop())
+    }
+    else {
+      val pos = if (split.contains("Rcv")) {
+        split.indexOf("Rcv")
+      } else {
+        split.indexOf("Snd")
+      }
+
+      val fromArr = split.slice(0, pos - 1)
+      val toArr = split.slice(pos + 2, split.length)
+      val (fromName, fromIndex) = getStateComponents(fromArr)
+      val (toName, toIndex) = getStateComponents(toArr)
+      val channel = split(pos - 1)
+      val message = split(pos + 1)
+
+      val transitionCondition = if (split.contains("Snd")) {
+        Send(channel, message)
+      } else {
+        Receive(channel, message)
+      }
+      new Transition(fromName, fromIndex, toName, toIndex, transitionCondition)
     }
   }
 
   def automatonsWithPhases(p: Int): List[Automaton] = {
-    List(Phase.makeCondensed(automatons.head, p))
-    //automatons.map(automaton => Phase.makeCondensed(automaton, p)).toList
+    //List(Phase.makeCondensed(automatons.head, p))
+    automatons.map(automaton => Phase.makeCondensed(automaton, p)).toList
   }
 }

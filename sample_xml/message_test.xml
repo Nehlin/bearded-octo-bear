@@ -1,0 +1,114 @@
+<protocol name="Simple" medium="STUTT_FIFO" capacity="4">
+  <role name="SENDER">
+    <states>
+      <state type="initial">A</state>
+      <state>B</state>
+      <state>C</state>
+      <state>D</state>
+      <state>E</state>
+      <state>F</state>
+      <state>G</state>
+      <state>H</state>
+    </states>
+
+    <rule id="A -a!> B">
+      <pre>
+        <current_state>A</current_state>
+      </pre>
+      <post>
+        <send_message>a</send_message>
+        <next_state>B</next_state>
+        <channel></channel>
+      </post>
+    </rule>
+
+    <rule id="A -b!> C">
+      <pre>
+        <current_state>A</current_state>
+      </pre>
+      <post>
+        <send_message>b</send_message>
+        <next_state>C</next_state>
+        <channel></channel>
+      </post>
+    </rule>
+
+    <rule id="B -c!> D">
+      <pre>
+        <current_state>B</current_state>
+      </pre>
+      <post>
+        <send_message>c</send_message>
+        <next_state>D</next_state>
+        <channel></channel>
+      </post>
+    </rule>
+
+    <rule id="C -c!> D">
+      <pre>
+        <current_state>C</current_state>
+      </pre>
+      <post>
+        <send_message>c</send_message>
+        <next_state>D</next_state>
+        <channel></channel>
+      </post>
+    </rule>
+
+    <rule id="C -b?> D">
+      <pre>
+        <current_state>C</current_state>
+        <received_message>b</received_message>
+        <channel></channel>
+      </pre>
+      <post>
+        <next_state>D</next_state>
+      </post>
+    </rule>
+
+    <rule id="D -c?> E">
+      <pre>
+        <current_state>D</current_state>
+        <received_message>c</received_message>
+        <channel></channel>
+      </pre>
+      <post>
+        <next_state>E</next_state>
+      </post>
+    </rule>
+
+    <rule id="D -a?> F">
+      <pre>
+        <current_state>D</current_state>
+        <received_message>a</received_message>
+        <channel></channel>
+      </pre>
+      <post>
+        <next_state>F</next_state>
+      </post>
+    </rule>
+
+    <rule id="D -b?> G">
+      <pre>
+        <current_state>D</current_state>
+        <received_message>b</received_message>
+        <channel></channel>
+      </pre>
+      <post>
+        <next_state>G</next_state>
+      </post>
+    </rule>
+
+    <rule id="G -c?> H">
+      <pre>
+        <current_state>G</current_state>
+        <received_message>c</received_message>
+        <channel></channel>
+      </pre>
+      <post>
+        <next_state>H</next_state>
+      </post>
+    </rule>
+
+  </role>
+</protocol>
