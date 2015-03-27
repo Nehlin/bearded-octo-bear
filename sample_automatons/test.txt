@@ -1,6 +1,7 @@
-TestProtocol:Lossy:4
+Test protocol:5
 Automaton 1
-A !a> B ^
+> A
+A !a> B
 A !b> C
 B !c> D
 C !c> D
@@ -8,9 +9,16 @@ C ?b> D
 D ?c> E
 D ?a> F
 D ?b> G
-G ?b> H
+G ?c> H
+H ?d> I
+I !e> J
+B !c> X
+X !c> D
+J >
 ,
 Automaton 2
-A > B ^
+> A
+A !d> B
 B > C
-C apa!häst> C
+C ?e> D
+D >

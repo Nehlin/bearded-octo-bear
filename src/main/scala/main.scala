@@ -1,14 +1,9 @@
-// TODO: rename states to ensure collision free behaviour from _(index), _tmp, etc
-
 import automaton._
-
-import scala.xml._
 
 import java.nio.file.{Paths, Files}
 import java.nio.charset.StandardCharsets
 import scala.collection.JavaConversions._
 import scala.sys.process._
-import scala.io.Source
 
 object Y {
 
@@ -115,132 +110,28 @@ object Y {
     }
   }
 
-  def readAutomatonFile(fileName: String): (String,
-    String,
-    Int,
-    List[String],
-    List[String],
-    List[(String, List[String], List[(String, String, String, Option[String], Option[String])], String)]) = {
-
-    val lines = Source.fromFile(fileName).getLines().toList.map(_.trim).filter(l => !l.startsWith("%"))
-    val protocol = lines.head
-    val protoSplit = protocol.split(':')
-    val protoName = protoSplit(0)
-    val protoType = protoSplit(1)
-    val protoCapacity = protoSplit(2).toInt
-
-    def splitAutomatonLines (l: List[String]): List[List[String]] = {
-      if (l.contains(",")) {
-        val pos = l.indexOf(",")
-        val head = l.take(pos)
-        val tail = l.slice(pos + 1, l.length)
-        head :: splitAutomatonLines(tail)
-      } else {
-        List(l)
-      }
-    }
-
-    def parseLine(line: String): (String, String, String, Option[String], Option[String], Option[String]) = {
-      val components = line.split(" ")
-      val from = components(0)
-      val to = components(2)
-      val transition = components(1).stripSuffix(">")
-
-      val (tType, chn, msg) = if (transition.contains("!")) {
-        val split = transition.split('!')
-        ("s", Some(split(0)), Some(split(1)))
-      } else if (transition.contains("?")) {
-        val split = transition.split('?')
-        ("r", Some(split(0)), Some(split(1)))
-      } else {
-        ("n", None, None)
-      }
-
-      if (components.contains("^")) {
-        (from, to, tType, chn, msg, Some(from))
-      } else {
-        (from, to, tType, chn, msg, None)
-      }
-    }
-
-    val automatonLines = splitAutomatonLines(lines.tail)
-    val automatons = automatonLines.map(aLines => {
-      val name = aLines.head
-
-      val transitions = aLines.tail.map(parseLine)
-      val states = transitions.map{case (from, to, _, _, _, _) => List(from, to)}.flatten.distinct
-      val channels = transitions.map{case (_, _, _, chn, _, _) => chn}.distinct
-      val messages = transitions.map{case (_, _, _, _, msg, _) => msg}.distinct
-      val startState = transitions.map{case (_, _, _, _, _, initial) => initial}.flatten.head
-      val cleanTransitions = transitions.map{case (from, to, tType, chn, msg, _) => (from, to, tType, chn, msg)}
-      (name, states, cleanTransitions, channels, messages, startState)
-    })
-
-    val channels = automatons.map{case (_, _, _, chn, _, _) => chn}.flatten.flatten
-    val messages = automatons.map{case (_, _, _, _, msg, _) => msg}.flatten.flatten
-    val cleanedAutomatons = automatons.map
-      {case (name, states, transitions, _, _, startState) => (name, states, transitions, startState)}
-    (protoName, protoType, protoCapacity, channels, messages, cleanedAutomatons)
-  }
-
-  def writeAutomatonFile(protocolName: String,
-    protocolType: String,
-    protocolCapacity: Int,
-    channels: List[String],
-    messages: List[String],
-    automatons: List[(String, List[String], List[(String, String, String, Option[String], Option[String])], String)])
-  : String = {
-
-    val rolesXml = automatons.map{case (name, states, transitions, startState) =>
-      val statesXml = states.map(state =>
-        if (state == startState) {
-          <state type="initial">{state}</state>
-        } else {
-          <state>{state}</state>
-        }
-      )
-
-      transitions.map{case (from, to, tType, chn, msg) =>
-        <pre></pre>
-      }
-
-      <role name={name}>
-        <states>
-          {statesXml}
-        </states>
-      </role>
-    }
-
-    val messagesXml = <messages>{messages.map(m => <message>{m}</message>)}</messages>
-    val channelsXml = <channels>{channels.map(c => <message>{c}</message>)}</channels>
-
-    val x = <protocol name={protocolName} medium={protocolType} capacity={protocolCapacity.toString}>
-      {messagesXml}
-      {channelsXml}
-      {rolesXml}
-    </protocol>
-    println(x)
-
-    ""
-  }
-
   def main(args:Array[String]) {
 
-    //val (pName, pType, pCapacity, chn, msg, autos) = readAutomatonFile("sample_automatons/test.txt")
-    //writeAutomatonFile(pName, pType, pCapacity, chn, msg, autos)
-    //return
+    ConvertXml.xmlToFile("sample_xml/ABP.xml", "result/converted.txt")
 
-    val filename = "sample_xml/message_test.xml"
+    val autoWithEnd = Automaton.readAutomatonFile("result/converted.txt")
+
+    //val (pName, pType, pCapacity, chn, msg, autos) = readAutomatonFile("sample_automatons/test.txt")
+    //val xmlElem = writeAutomatonFile(pName, pType, pCapacity, chn, msg, autos)
+
     val inputFile = "result/input.smt2"
     val outputFile = "result/output.txt"
-    val outputDot = "result/path.dot"
-    val originalDot = "result/original.dot"
+    val outputDot = "result/p_"
+    val originalDot = "result/o_"
 
 
-    val sys = new Sys(XML.loadFile(filename))
+    val sys = new Sys(autoWithEnd)
     val presburgerString = Presburger.makePresburger(sys, 1)
     Files.write(Paths.get(inputFile), presburgerString.getBytes(StandardCharsets.UTF_8))
-    Files.write(Paths.get(originalDot), Dot.make(sys.automatons.head).getBytes(StandardCharsets.UTF_8))
+    for (auto <- sys.automatons) {
+      Files.write(Paths.get(originalDot + auto.automatonName + ".dot"),
+        Dot.make(auto).getBytes(StandardCharsets.UTF_8))
+    }
 
     val optionFun = getOption(args)
     val z3Path = optionFun("z3")
@@ -256,13 +147,17 @@ object Y {
 
         val occurrences = result.get.filter{case (str, int) => str.startsWith("occ_") && int == 1}.map{case (str, _) => str.stripPrefix("occ_")}
         val occTransitions = occurrences.map(sys.transitionFromVarName).toSet
-        Files.write(Paths.get(outputDot), Dot.makeHl2(sys.automatons.head, occTransitions).getBytes(StandardCharsets.UTF_8))
+        for (auto <- sys.automatons) {
+          Files.write(Paths.get(outputDot + auto.automatonName + ".dot"),
+            Dot.makeHl2(auto, occTransitions).getBytes(StandardCharsets.UTF_8))
+        }
 
         val sequence = result.get.filter{case (str, _) => str.startsWith("seq_")}.toList.sortBy(_._2).map{case (str, _) => str.stripPrefix("seq_")}
         val occurringSequences = sequence.filter(tStr => occurrences.contains(tStr))
-        println(occurringSequences)
-        val res = result.get
-        occurringSequences.map(seq => println(seq, res("seq_" + seq)))
+        for (t <- occurringSequences) {
+          val split = t.split('_')
+          println(split.head + " -> " + split.last)
+        }
 
       } else {
         println("unsatisfiable")

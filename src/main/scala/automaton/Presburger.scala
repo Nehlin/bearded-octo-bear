@@ -1,7 +1,5 @@
 package automaton
 
-import com.sun.org.apache.xpath.internal.operations.Bool
-
 import scala.collection.mutable.{MutableList => MList}
 
 object Presburger {
@@ -12,7 +10,7 @@ object Presburger {
     val allTransitions = automatons.map(_.transitions).flatten.sortBy(t => t.toString).toList
     val allStates = automatons.map(_.states).flatten.sortBy(s => s.name).toList
     val allInitialStates = automatons.map(_.initialState).flatten
-    val endState = allStates.filter(s => s.name == "H").head
+    val allEndStates = sys.endStatesNormalised
 
     val allSend = allTransitions.filter(transition => transition.condition.isInstanceOf[Send])
     val allReceive = allTransitions.filter(transition => transition.condition.isInstanceOf[Receive])
@@ -58,6 +56,21 @@ object Presburger {
       binary("=", occ(transition), "1")
     }
 
+    def getChannelMessage(transition: Transition): (String, String) = {
+      transition.condition match {
+        case Send(chn, msg) => (chn, msg)
+        case Receive(chn, msg) => (chn, msg)
+      }
+    }
+
+    def getChannel(transition: Transition): String = {
+      getChannelMessage(transition) match { case (chn, _) => chn}
+    }
+
+    def getMessage(transition: Transition): String = {
+      getChannelMessage(transition) match { case (_, msg) => msg}
+    }
+
     val rules = MList[String]()
 
     rules += comment("Define occurrence and constrain it to 1/0")
@@ -93,7 +106,7 @@ object Presburger {
 
 
     rules += comment("Incoming flow = outgoing flow for all intermediate states")
-    for (state <- allStates.diff(allInitialStates).diff(List(endState))) {
+    for (state <- allStates.diff(allInitialStates).diff(allEndStates.flatten)) {
       val incomingOcc = allTransitions.filter(p => p.to == state.name).toList.map(occ)
       val outgoingOcc = allTransitions.filter(p => p.from == state.name).toList.map(occ)
       if (incomingOcc.nonEmpty && outgoingOcc.nonEmpty) {
@@ -135,14 +148,39 @@ object Presburger {
 
 
 
-    rules += comment("Incoming flow to target state is 1")
-    val incomingOcc = allTransitions.filter(p => p.to == endState.name).toList.map(occ)
-    rules += assert(
-      binary("=",
-        chain("+", incomingOcc),
-        "1"
-      )
-    )
+    rules += comment("Incoming flow to at least one target state is 1")
+    for (endStatesForSingleAutomaton <- allEndStates) {
+      for (endState <- endStatesForSingleAutomaton) {
+        val incomingOcc = allTransitions.filter(t => t.to == endState.name).toList.map(occ)
+        val outgoingOcc = allTransitions.filter(t => t.from == endState.name).toList.map(occ)
+        if (incomingOcc.nonEmpty && outgoingOcc.nonEmpty) {
+          rules += assert(
+            binary("<=",
+              chain("+", outgoingOcc),
+              chain("+", incomingOcc)
+            )
+          )
+        }
+      }
+      val nonStartEndStates = endStatesForSingleAutomaton.map(endState => {
+        val incomingOcc = allTransitions.filter(t => t.to == endState.name).toList.map(occ)
+        val outgoingOcc = allTransitions.filter(t => t.from == endState.name).toList.map(occ)
+        if (incomingOcc.nonEmpty && outgoingOcc.nonEmpty) {
+          Some(binary("and",
+            binary("=", chain("+", incomingOcc), "1"),
+            binary("=", chain("+", outgoingOcc), "0")
+          ))
+        } else if (incomingOcc.nonEmpty) {
+          Some(binary("=", chain("+", incomingOcc), "1"))
+        } else {
+          None
+        }
+      }).flatten
+
+      if (nonStartEndStates.nonEmpty) {
+        rules += assert(chain("or", nonStartEndStates))
+      }
+    }
 
 
 
@@ -160,198 +198,65 @@ object Presburger {
 
 
 
-    rules += comment("Each receive needs a matching send")
+    rules += comment("Each receive needs a matching send, send needs to occur before receive")
     val (declareMatch, assertMatch) = allReceive.map(rt => {
-      val (rChn, rMsg) = rt.condition match {case Receive(chn, msg) => (chn, msg)}
+      val chnMsg = getChannelMessage(rt)
       val matchingSends = allSend.filter(st => {
-        st.condition match {case Send(chn, msg) => chn == rChn && msg == rMsg}
-      })
-
-      val matchRules = matchingSends.map(st => {
-        binary("and",
-          binary("=", mat(rt), seq(st)),
-          occurs(st)
-        )
-      })
-
-      (declare(mat(rt), "Int"),
-      assert(
-        binary("=>",
-          occurs(rt),
-          chain("or", matchRules)
-        )
-      ))
-    }).unzip
-    rules ++= declareMatch
-    rules ++= assertMatch
-
-    rules += "(check-sat)"
-    rules += "(get-model)"
-    rules.mkString("\n")
-    /*
-    val automatons = sys.automatonsWithPhases(phases)
-    val automatons = sys.automatons
-
-    val allTransitions = automatons.map(_.transitions).flatten.sortBy(t => t.toString)
-
-    val allSend = allTransitions.filter(transition => transition.condition.isInstanceOf[Send])
-    val allReceive = allTransitions.filter(transition => transition.condition.isInstanceOf[Receive])
-
-
-    val a = automatons.head
-    val startState = a.initialState.get
-    val endState = a.stateMap("E")
-    val states = a.states - startState - endState
-    val transitions = a.sortedTransitions
-
-
-
-    def incomingVar(state: State, transitions: Array[Transition]): Array[Transition] = {
-      transitions.filter(t => t.to == state.name)
-    }
-
-    def outgoingVar(state: State, transitions: Array[Transition]): Array[Transition] = {
-      transitions.filter(t => t.from == state.name)
-    }
-
-    def makeComposition(vars: Array[String], operator: String): String = {
-      if (vars.tail.isEmpty) {
-        vars.head
-      } else {
-        "(" + operator + " " + vars.head + " " + makeComposition(vars.tail, operator) + ")"
-      }
-    }
-
-    def makeDisjunction(vars: Array[String]): String = {
-      makeComposition(vars, "or")
-    }
-
-    def makeAddition(vars: Array[Transition]): String = {
-      makeComposition(vars.map(occ), "+")
-    }
-
-    def varName(prefix: String)(transition: Transition) = {
-      prefix + "_" + sys.transitionVarName(transition)
-    }
-
-    def occ = varName("occ")_
-    def seq = varName("seq")_
-    def mat = varName("match")_
-
-    def doesOccur(transition: Transition): String = {
-      "(= " + occ(transition) + " 1)"
-    }
-
-    def makeFlowRuleSingle(transitions: Array[Transition], value:Boolean):String = {
-      val valueString = if (value) "1" else "0"
-      "(assert (= " + valueString + " " + makeAddition(transitions) + "))"
-    }
-
-    def makeFlowRule(incoming: Array[Transition], outgoing: Array[Transition]): String = {
-      "(assert (= " + makeAddition(incoming) + " " + makeAddition(outgoing) + "))"
-    }
-
-    def makeUniqueRule(transition1: Transition, transition2: Transition): String = {
-      "(assert (not (= seq_" + sys.transitionVarName(transition1) + " seq_" + sys.transitionVarName(transition2) + ")))"
-    }
-
-    def makeSequenceRule(transition1: Transition, transition2: Transition): String = {
-      "(assert (=> (and "
-    }
-
-    val rules = MList[String]()
-
-    for (transition <- transitions) {
-      rules += "(declare-const " + occ(transition) + " Int)"
-    }
-
-    for (transition <- transitions) {
-      rules += "(declare-const " + seq(transition) + " Int)"
-    }
-
-    val transitionPairs = transitions.combinations(2).toList.map(a => (a(0), a(1)))
-    for ((t1, t2) <- transitionPairs) {
-      rules += "(assert (not (= " + seq(t1) + " " + seq(t2) + ")))"
-    }
-
-    for (t1 <- transitions) {
-      for (t2 <- transitions
-        if t2.from == t1.to) {
-          rules += "(assert " +
-            "(=> (and " +
-            doesOccur(t1) + " " +
-            doesOccur(t2) +
-            ") " +
-            "(< " + seq(t1) + " " + seq(t2) + ")))"
-        }
-    }
-    rules += makeFlowRuleSingle(outgoingVar(startState, transitions), true)
-    rules += makeFlowRuleSingle(incomingVar(endState, transitions), true)
-
-    for (state <- states) {
-      val incoming = incomingVar(state, transitions)
-      val outgoing = outgoingVar(state, transitions)
-
-      if (incoming.nonEmpty && outgoing.nonEmpty) {
-        rules += makeFlowRule(incoming, outgoing)
-      } else if (incoming.nonEmpty) {
-        rules += makeFlowRuleSingle(incoming, false)
-      } else if (outgoing.nonEmpty) {
-        rules += makeFlowRuleSingle(outgoing, false)
-      }
-    }
-
-    def makeMatchRule(receive: Transition): Option[(String, String)] = {
-      val (rChn, rMsg) = receive.condition match {case Receive(chn, msg) => (chn, msg)}
-      val matchingSends = allSend.filter(send => {
-        val (sChn, sMsg) = send.condition match {case Send(chn, msg) => (chn, msg)}
-        rChn == sChn && rMsg == sMsg
+        getChannelMessage(st) == chnMsg
       })
 
       if (matchingSends.nonEmpty) {
-        val defRule = "(declare-const " + mat(receive) + " Int)"
-        val sendRules = matchingSends.map(send => {
-          "(and " +
-          "(= " + mat(receive) + " " + seq(send) + ") " +
-          doesOccur(send) +
-          ")"
+
+        val matchRules = matchingSends.map(st => {
+          binary("and",
+            binary("=", mat(rt), seq(st)),
+            occurs(st)
+          )
         })
-        val sendRule = "(assert " + makeDisjunction(sendRules.toArray) + ")"
-        Some((defRule, sendRule))
+
+        val declareMatch = declare(mat(rt), "Int")
+        val assertMatch = assert(
+          binary("and",
+            binary("=>",
+              occurs(rt),
+              chain("or", matchRules)
+            ),
+            binary("<", mat(rt), seq(rt))
+          )
+        )
+        Some((declareMatch, assertMatch))
       } else {
         None
       }
-    }
+    }).flatten.unzip
+    rules ++= declareMatch
+    rules ++= assertMatch
 
-    val (matchDefRules, matchRules) = allReceive.toArray.map(makeMatchRule).flatten.unzip
-    rules ++= matchDefRules
-    rules ++= matchRules
 
-    val receivePairs = allReceive.combinations(2).toList.map(a => (a(0), a(1)))
-    for ((r1, r2) <- receivePairs) {
-      val r1Channel = r1.condition match { case Receive(chn, _) => chn }
-      val r2Channel = r2.condition match { case Receive(chn, _) => chn }
 
-      if (r1Channel == r2Channel) {
-        rules += "(assert (=> " +
-          "(and " +
-          doesOccur(r1) + " " +
-          doesOccur(r2) +
-          ") " +
-          "(= (< " + seq(r1) + " " + seq(r2) + ") " +
-          "(< " + mat(r1) + " " + mat(r2) + "))))"
+    rules += comment("Respect FIFO for channels")
+    val receivePairs = allReceive.combinations(2).toList.map{case List(t1, t2) => (t1, t2)}
+    for ((rt1, rt2) <- receivePairs) {
+      if (getChannel(rt1) == getChannel(rt2)) {
+        rules += assert(
+          binary("=>",
+            binary("and",
+              occurs(rt1),
+              occurs(rt2)
+            ),
+            binary("=",
+              binary("<", seq(rt1), seq(rt2)),
+              binary("<", mat(rt1), mat(rt2))
+            )
+          )
+        )
       }
     }
 
-    for (receive <- allReceive) {
-      // TODO: figure this one out
-      //rules += "(assert (=> " + occ(receive) + " " + mat(receive) + "))"
-    }
+
 
     rules += "(check-sat)"
     rules += "(get-model)"
-
     rules.mkString("\n")
-    */
   }
 }

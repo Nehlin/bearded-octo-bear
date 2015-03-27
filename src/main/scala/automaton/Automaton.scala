@@ -1,6 +1,7 @@
 package automaton
 
-import scala.xml.{Node, NodeSeq}
+import scala.io.Source
+import scala.xml.{Elem, Node, NodeSeq}
 import scala.collection.mutable.{Map => MMap}
 import scala.collection.mutable.{Set => MSet}
 
@@ -460,79 +461,55 @@ object Automaton {
     states.map(state => (state.name, state)).toMap
   }
 
-  /**
-   * Extracts the name of the initial state from the XML.
-   *
-   * Since an initial state is required, this method will throw an error if none is found.
-   *
-   * @param states  The NodeSeq containing the states of the automaton.
-   * @return        The name of the initial state.
-   */
-  private def getInitialStateName(states: NodeSeq): String = {
-    if (states.isEmpty)
-      throw new RuntimeException("No initial state found")
-    else if ((states.head \\ "@type").text == "initial")
-      states.head.child.text
-    else
-      getInitialStateName(states.tail)
-  }
+  def readAutomatonFile(fileName: String): List[(Automaton, List[String])] = {
 
-  private def getSpecificRule(path: String,
-                              messageName: String)
-                             (rule:Node): Option[(String, String)] = {
+    val allLines = Source.fromFile(fileName).getLines().toList.map(_.trim).filter(l => !l.startsWith("%"))
+    // TODO: extract meta data from head
+    val lines = allLines.tail
 
-    val post = (rule \ path).head
-    val messageNode = post \ messageName
-    val channelNode = post \ "channel"
-    if (messageNode.isEmpty || channelNode.isEmpty)
-      None
-    else {
-      val message = messageNode.head.text
-      val channel = channelNode.head.text
-      Some(channel, message)
+    def splitAutomatons (l: List[String]): List[List[String]] = {
+      if (l.contains(",")) {
+        val pos = l.indexOf(",")
+        val head = l.take(pos)
+        val tail = l.slice(pos + 1, l.length)
+        head :: splitAutomatons(tail)
+      } else {
+        List(l)
+      }
     }
-  }
 
-  private def getSend = getSpecificRule("post", "send_message")_
-  private def getReceive = getSpecificRule("pre", "received_message")_
+    val automatonLines = splitAutomatons(lines)
+    val automatons = automatonLines.map(lines => {
+      val name = lines.head
+      val transitionStrings = lines.tail
+      val normalTransitions = transitionStrings.filter(_.split(" ").length == 3)
+      val startName = transitionStrings.filter(_.startsWith(">")).head.stripPrefix(">").trim
+      val endNames = transitionStrings.filter(_.endsWith(">")).map(_.stripSuffix(">").trim)
 
-  private def getRule(rule: Node): TransitionCondition = {
-    val send = getSend(rule)
-    val receive = getReceive(rule)
-    (send, receive) match {
-      case (Some((channel, message)), _) => Send(channel, message)
-      case (_, Some((channel, message))) => Receive(channel, message)
-      case _ => Nop()
-    }
-  }
+      val stateNames = transitionStrings.map(_.split(" ")).flatten.filter(!_.contains(">")).distinct.sorted
+      val transitions = normalTransitions.map(t => {
+        val split = t.split(" ")
+        val fromName = split(0)
+        val toName = split(2)
+        val condStr = split(1)
+        val condition = if (condStr.contains('!')) {
+          val chn = condStr.split('!')(0)
+          val msg = condStr.split('!')(1)
+          Send(chn, msg)
+        } else if (condStr.contains('?')) {
+          val chn = condStr.split('?')(0)
+          val msg = condStr.split('?')(1)
+          Receive(chn, msg)
+        } else {
+          Nop()
+        }
+        new Transition(fromName, toName, condition)
+      }).toSet
 
-  /**
-   * Creates an automaton from a role-node in the xml-document.
-   *
-   * @param process A role-node from the xml-document.
-   * @return        An automaton matching the data contained in the node.
-   */
-  def fromXml(process: Node): Automaton = {
-
-    val states = process \ "states" \ "state"
-    val stateMap = states.map(s => (s.child.text, new State(s.child.text, None))).toMap
-
-    val rules = process \\ "rule"
-    val transitions = rules.map(rule => {
-      val fromStateName = (rule \\ "pre" \\ "current_state").head.child.text
-      val toStateName = (rule \\ "post" \\ "next_state").head.child.text
-
-      val fromState = stateMap(fromStateName)
-      val toState = stateMap(toStateName)
-
-      val tRule = getRule(rule)
-      new Transition(fromState, toState, tRule)
-    }).toSet
-
-    val initialStateName = getInitialStateName(states)
-
-    val automatonName = (process \ "@name").toString()
-    new Automaton(stateMap, transitions, Some(initialStateName, None), None, automatonName)
+      val stateMap = stateNames.map(sName => (sName, new State(sName, None))).toMap
+      (new Automaton(stateMap, transitions, Some(startName, None), None, name), endNames)
+    })
+    automatons
   }
 
   /**

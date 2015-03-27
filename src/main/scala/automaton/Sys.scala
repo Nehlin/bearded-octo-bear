@@ -2,10 +2,10 @@ package automaton
 
 import scala.xml._
 
-class Sys(xmlRoot:Node) {
+class Sys(automatonsWithEnd: List[(Automaton, List[String])]) {
 
-  private val roles = xmlRoot \\ "protocol" \\ "role"
-  private val rawAutomatons = roles.map(Automaton.fromXml).sortBy(automaton => automaton.automatonName)
+  private val (rawAutomatons, endStates) = automatonsWithEnd.unzip
+  //private val rawAutomatons = roles.map(Automaton.fromXml).sortBy(automaton => automaton.automatonName)
 
   private var index = 0
   val (automatonsNormalisedNames, translationMaps) = rawAutomatons.map(rawAutomaton => {
@@ -38,6 +38,16 @@ class Sys(xmlRoot:Node) {
   val (channelMap, messageMap) = makeTransitionTranslationMaps(automatonsNormalisedNames)
 
   val automatons = automatonsNormalisedNames.map(_.renameTransitions(channelMap, messageMap))
+  val endStatesNormalised: List[List[State]] = {
+    (endStates, translationMaps, automatons).zipped.toList.map{ case (es, tm, a) =>
+      // Map is 1-to-1, so this is legit
+      val tmFlipped = tm.keys.map(key => (tm(key), key)).toMap
+      es.map(s => {
+        val name = tmFlipped(s)
+        a.stateMap(name)
+      })
+    }
+  }
 
   def transitionVarName(transition: Transition): String = {
 
