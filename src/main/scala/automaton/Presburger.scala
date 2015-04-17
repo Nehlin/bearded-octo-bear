@@ -3,14 +3,22 @@ package automaton
 import scala.collection.mutable.{MutableList => MList}
 
 object Presburger {
-  def makePresburger(sys: Sys, phases: Int): String = {
+  def makePresburger(sys: Sys, phases: Int): Option[String] = {
 
-    val automatons = sys.automatons
+    val (isUnreachable, automatons, endStates) = sys.automatonsWithPhases(phases)
+
+    if (isUnreachable) {
+      return None
+    }
+    //val automatons = sys.automatons
+    /*val endStates = (automatons, sys.endStatesNormalised).zipped.map{case (auto, es) =>
+      sys.endStatesForAutomaton(auto, es)
+    }*/
 
     val allTransitions = automatons.map(_.transitions).flatten.sortBy(t => t.toString).toList
     val allStates = automatons.map(_.states).flatten.sortBy(s => s.name).toList
     val allInitialStates = automatons.map(_.initialState).flatten
-    val allEndStates = sys.endStatesNormalised
+    val allEndStates = endStates
 
     val allSend = allTransitions.filter(transition => transition.condition.isInstanceOf[Send])
     val allReceive = allTransitions.filter(transition => transition.condition.isInstanceOf[Receive])
@@ -33,7 +41,7 @@ object Presburger {
 
     def comment(string: String): String = {
       ";\n" +
-      "; " + string
+      "; " + string.replaceAll("\n", "\n;")
     }
 
     def unary(operator: String, operand: String): String = {
@@ -71,6 +79,14 @@ object Presburger {
       getChannelMessage(transition) match { case (_, msg) => msg}
     }
 
+    def hasMatchingSends(rt: Transition): Boolean = {
+      val chnMsg = getChannelMessage(rt)
+      val matchingSends = allSend.filter(st => {
+        getChannelMessage(st) == chnMsg
+      })
+      matchingSends.nonEmpty
+    }
+
     val rules = MList[String]()
 
     rules += comment("Define occurrence and constrain it to 1/0")
@@ -90,10 +106,14 @@ object Presburger {
 
 
     rules += comment("Define sequence and enforce uniqueness")
-    for (transition <- allTransitions) {
-      rules += declare(seq(transition), "Int")
+    val allSeq = allTransitions.map(seq)
+    for (sequence <- allSeq) {
+      rules += declare(sequence, "Int")
     }
+    rules += assert(unary("distinct", allSeq.mkString(" ")))
 
+    // TODO: test to check improvement before deleting
+    /*
     val transitionPairs = allTransitions.combinations(2).toList.map{case List(t1, t2) => (t1, t2)}
     for ((t1, t2) <- transitionPairs) {
       rules += assert(
@@ -101,7 +121,7 @@ object Presburger {
           binary("=", seq(t1), seq(t2))
         )
       )
-    }
+    }*/
 
 
 
@@ -132,7 +152,6 @@ object Presburger {
         )
       }
     }
-
 
 
     rules += comment("Outgoing flow from initial states is at most 1")
@@ -198,7 +217,8 @@ object Presburger {
 
 
 
-    rules += comment("Each receive needs a matching send, send needs to occur before receive")
+    rules += comment("Each receive needs a matching send, send needs to occur before receive.\n" +
+      "No matching send means receive did not occur")
     val (declareMatch, assertMatch) = allReceive.map(rt => {
       val chnMsg = getChannelMessage(rt)
       val matchingSends = allSend.filter(st => {
@@ -224,12 +244,15 @@ object Presburger {
             binary("<", mat(rt), seq(rt))
           )
         )
-        Some((declareMatch, assertMatch))
+        (Some(declareMatch), assertMatch)
       } else {
-        None
+        val occRule = assert(
+          binary("=", occ(rt), "0")
+        )
+        (None, occRule)
       }
-    }).flatten.unzip
-    rules ++= declareMatch
+    }).unzip
+    rules ++= declareMatch.flatten
     rules ++= assertMatch
 
 
@@ -237,7 +260,7 @@ object Presburger {
     rules += comment("Respect FIFO for channels")
     val receivePairs = allReceive.combinations(2).toList.map{case List(t1, t2) => (t1, t2)}
     for ((rt1, rt2) <- receivePairs) {
-      if (getChannel(rt1) == getChannel(rt2)) {
+      if (getChannel(rt1) == getChannel(rt2) && hasMatchingSends(rt1) && hasMatchingSends(rt2)) {
         rules += assert(
           binary("=>",
             binary("and",
@@ -257,6 +280,6 @@ object Presburger {
 
     rules += "(check-sat)"
     rules += "(get-model)"
-    rules.mkString("\n")
+    Some(rules.mkString("\n"))
   }
 }

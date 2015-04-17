@@ -2,6 +2,7 @@ project
 target
 graph.dot
 .idea
+.send_experiments
 ABP.xml
 dot
 .DS_Store

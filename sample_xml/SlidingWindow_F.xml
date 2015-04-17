@@ -1,0 +1,602 @@
+<protocol name="Protocol Name" medium="SET" capacity="4">
+  <messages>
+     <message>ack0</message>
+     <message>ack1</message>
+     <message>ack2</message>
+     <message>msg0</message>
+     <message>msg1</message>
+     <message>msg2</message>
+  </messages>
+  <channels>
+     <channel>c1</channel>
+     <channel>c2</channel>
+  </channels>
+
+  <role name="SENDER">
+    <states>
+      <state type="initial">Init</state>
+      <state>SWF01S</state>
+      <state>SWF1S</state>
+      <state>SWF12S</state>
+      <state>SWF2S</state>
+      <state>SWF20S</state>
+      <state>SWF0S</state>
+      <state>Invalid</state>
+    </states>
+    <rule id="Init__msg0__OUTBOUND">
+      <pre>
+        <current_state>Init</current_state>
+      </pre>
+      <post>
+        <send_message>msg0</send_message>
+        <next_state>SWF01S</next_state>
+        <channel>c1</channel>
+      </post>
+    </rule>
+
+    <rule id="SWF01S__msg0__OUTBOUND">
+      <pre>
+        <current_state>SWF01S</current_state>
+      </pre>
+      <post>
+        <send_message>msg0</send_message>
+        <next_state>SWF01S</next_state>
+        <channel>c1</channel>
+      </post>
+    </rule>
+
+    <rule id="SWF20S__msg0__OUTBOUND">
+      <pre>
+        <current_state>SWF20S</current_state>
+      </pre>
+      <post>
+        <send_message>msg0</send_message>
+        <next_state>SWF20S</next_state>
+        <channel>c1</channel>
+      </post>
+    </rule>
+
+    <rule id="SWF0S__msg0__OUTBOUND">
+      <pre>
+        <current_state>SWF0S</current_state>
+      </pre>
+      <post>
+        <send_message>msg0</send_message>
+        <next_state>SWF0S</next_state>
+        <channel>c1</channel>
+      </post>
+    </rule>
+
+    <rule id="SWF01S__msg1__OUTBOUND">
+      <pre>
+        <current_state>SWF01S</current_state>
+      </pre>
+      <post>
+        <send_message>msg1</send_message>
+        <next_state>SWF01S</next_state>
+        <channel>c1</channel>
+      </post>
+    </rule>
+
+    <rule id="SWF1S__msg1__OUTBOUND">
+      <pre>
+        <current_state>SWF1S</current_state>
+      </pre>
+      <post>
+        <send_message>msg1</send_message>
+        <next_state>SWF1S</next_state>
+        <channel>c1</channel>
+      </post>
+    </rule>
+
+    <rule id="SWF12S__msg1__OUTBOUND">
+      <pre>
+        <current_state>SWF12S</current_state>
+      </pre>
+      <post>
+        <send_message>msg1</send_message>
+        <next_state>SWF12S</next_state>
+        <channel>c1</channel>
+      </post>
+    </rule>
+
+    <rule id="SWF12S__msg2__OUTBOUND">
+      <pre>
+        <current_state>SWF12S</current_state>
+      </pre>
+      <post>
+        <send_message>msg2</send_message>
+        <next_state>SWF12S</next_state>
+        <channel>c1</channel>
+      </post>
+    </rule>
+
+    <rule id="SWF2S__msg2__OUTBOUND">
+      <pre>
+        <current_state>SWF2S</current_state>
+      </pre>
+      <post>
+        <send_message>msg2</send_message>
+        <next_state>SWF2S</next_state>
+        <channel>c1</channel>
+      </post>
+    </rule>
+
+    <rule id="SWF20S__msg2__OUTBOUND">
+      <pre>
+        <current_state>SWF20S</current_state>
+      </pre>
+      <post>
+        <send_message>msg2</send_message>
+        <next_state>SWF20S</next_state>
+        <channel>c1</channel>
+      </post>
+    </rule>
+
+    <rule id="SWF01S__ack0__INBOUND">
+      <pre>
+        <current_state>SWF01S</current_state>
+        <received_message>ack0</received_message>
+        <channel>c2</channel>
+      </pre>
+      <post>
+        <next_state>SWF12S</next_state>
+      </post>
+    </rule>
+
+    <rule id="SWF20S__ack0__INBOUND">
+      <pre>
+        <current_state>SWF20S</current_state>
+        <received_message>ack0</received_message>
+        <channel>c2</channel>
+      </pre>
+      <post>
+        <next_state>SWF2S</next_state>
+      </post>
+    </rule>
+
+    <rule id="SWF0S__ack0__INBOUND">
+      <pre>
+        <current_state>SWF0S</current_state>
+        <received_message>ack0</received_message>
+        <channel>c2</channel>
+      </pre>
+      <post>
+        <next_state>SWF20S</next_state>
+      </post>
+    </rule>
+
+    <rule id="SWF01S__ack1__INBOUND">
+      <pre>
+        <current_state>SWF01S</current_state>
+        <received_message>ack1</received_message>
+        <channel>c2</channel>
+      </pre>
+      <post>
+        <next_state>SWF0S</next_state>
+      </post>
+    </rule>
+
+    <rule id="SWF1S__ack1__INBOUND">
+      <pre>
+        <current_state>SWF1S</current_state>
+        <received_message>ack1</received_message>
+        <channel>c2</channel>
+      </pre>
+      <post>
+        <next_state>SWF01S</next_state>
+      </post>
+    </rule>
+
+    <rule id="SWF12S__ack1__INBOUND">
+      <pre>
+        <current_state>SWF12S</current_state>
+        <received_message>ack1</received_message>
+        <channel>c2</channel>
+      </pre>
+      <post>
+        <next_state>SWF20S</next_state>
+      </post>
+    </rule>
+
+    <rule id="SWF12S__ack2__INBOUND">
+      <pre>
+        <current_state>SWF12S</current_state>
+        <received_message>ack2</received_message>
+        <channel>c2</channel>
+      </pre>
+      <post>
+        <next_state>SWF1S</next_state>
+      </post>
+    </rule>
+
+    <rule id="SWF2S__ack2__INBOUND">
+      <pre>
+        <current_state>SWF2S</current_state>
+        <received_message>ack2</received_message>
+        <channel>c2</channel>
+      </pre>
+      <post>
+        <next_state>SWF12S</next_state>
+      </post>
+    </rule>
+
+    <rule id="SWF20S__ack2__INBOUND">
+      <pre>
+        <current_state>SWF20S</current_state>
+        <received_message>ack2</received_message>
+        <channel>c2</channel>
+      </pre>
+      <post>
+        <next_state>SWF01S</next_state>
+      </post>
+    </rule>
+
+  </role>
+  <role name="RECEIVER">
+    <states>
+      <state type="initial">Init</state>
+      <state>RINITWF12R</state>
+      <state>RINITWF0R</state>
+      <state>RWF01R</state>
+      <state>RWF1R</state>
+      <state>RWF12R</state>
+      <state>RWF2R</state>
+      <state>RWF20R</state>
+      <state>RWF0R</state>
+      <state>Invalid</state>
+    </states>
+    <rule id="Init__msg0__INBOUND">
+      <pre>
+        <current_state>Init</current_state>
+        <received_message>msg0</received_message>
+        <channel>c1</channel>
+      </pre>
+      <post>
+        <next_state>RINITWF12R</next_state>
+      </post>
+    </rule>
+
+    <rule id="RINITWF0R__msg0__INBOUND">
+      <pre>
+        <current_state>RINITWF0R</current_state>
+        <received_message>msg0</received_message>
+        <channel>c1</channel>
+      </pre>
+      <post>
+        <next_state>RWF20R</next_state>
+      </post>
+    </rule>
+
+    <rule id="RWF01R__msg0__INBOUND">
+      <pre>
+        <current_state>RWF01R</current_state>
+        <received_message>msg0</received_message>
+        <channel>c1</channel>
+      </pre>
+      <post>
+        <next_state>RWF12R</next_state>
+      </post>
+    </rule>
+
+    <rule id="RWF1R__msg0__INBOUND">
+      <pre>
+        <current_state>RWF1R</current_state>
+        <received_message>msg0</received_message>
+        <channel>c1</channel>
+      </pre>
+      <post>
+        <next_state>Invalid</next_state>
+      </post>
+    </rule>
+
+    <rule id="RWF12R__msg0__INBOUND">
+      <pre>
+        <current_state>RWF12R</current_state>
+        <received_message>msg0</received_message>
+        <channel>c1</channel>
+      </pre>
+      <post>
+        <next_state>Invalid</next_state>
+      </post>
+    </rule>
+
+    <rule id="RWF2R__msg0__INBOUND">
+      <pre>
+        <current_state>RWF2R</current_state>
+        <received_message>msg0</received_message>
+        <channel>c1</channel>
+      </pre>
+      <post>
+        <next_state>Invalid</next_state>
+      </post>
+    </rule>
+
+    <rule id="RWF20R__msg0__INBOUND">
+      <pre>
+        <current_state>RWF20R</current_state>
+        <received_message>msg0</received_message>
+        <channel>c1</channel>
+      </pre>
+      <post>
+        <next_state>RWF2R</next_state>
+      </post>
+    </rule>
+
+    <rule id="RWF0R__msg0__INBOUND">
+      <pre>
+        <current_state>RWF0R</current_state>
+        <received_message>msg0</received_message>
+        <channel>c1</channel>
+      </pre>
+      <post>
+        <next_state>RWF20R</next_state>
+      </post>
+    </rule>
+
+    <rule id="Init__msg1__INBOUND">
+      <pre>
+        <current_state>Init</current_state>
+        <received_message>msg1</received_message>
+        <channel>c1</channel>
+      </pre>
+      <post>
+        <next_state>RINITWF0R</next_state>
+      </post>
+    </rule>
+
+    <rule id="RINITWF12R__msg1__INBOUND">
+      <pre>
+        <current_state>RINITWF12R</current_state>
+        <received_message>msg1</received_message>
+        <channel>c1</channel>
+      </pre>
+      <post>
+        <next_state>RWF20R</next_state>
+      </post>
+    </rule>
+
+    <rule id="RWF01R__msg1__INBOUND">
+      <pre>
+        <current_state>RWF01R</current_state>
+        <received_message>msg1</received_message>
+        <channel>c1</channel>
+      </pre>
+      <post>
+        <next_state>RWF0R</next_state>
+      </post>
+    </rule>
+
+    <rule id="RWF1R__msg1__INBOUND">
+      <pre>
+        <current_state>RWF1R</current_state>
+        <received_message>msg1</received_message>
+        <channel>c1</channel>
+      </pre>
+      <post>
+        <next_state>RWF01R</next_state>
+      </post>
+    </rule>
+
+    <rule id="RWF12R__msg1__INBOUND">
+      <pre>
+        <current_state>RWF12R</current_state>
+        <received_message>msg1</received_message>
+        <channel>c1</channel>
+      </pre>
+      <post>
+        <next_state>RWF20R</next_state>
+      </post>
+    </rule>
+
+    <rule id="RWF2R__msg1__INBOUND">
+      <pre>
+        <current_state>RWF2R</current_state>
+        <received_message>msg1</received_message>
+        <channel>c1</channel>
+      </pre>
+      <post>
+        <next_state>Invalid</next_state>
+      </post>
+    </rule>
+
+    <rule id="RWF0R__msg1__INBOUND">
+      <pre>
+        <current_state>RWF0R</current_state>
+        <received_message>msg1</received_message>
+        <channel>c1</channel>
+      </pre>
+      <post>
+        <next_state>Invalid</next_state>
+      </post>
+    </rule>
+
+    <rule id="RWF01R__msg2__INBOUND">
+      <pre>
+        <current_state>RWF01R</current_state>
+        <received_message>msg2</received_message>
+        <channel>c1</channel>
+      </pre>
+      <post>
+        <next_state>Invalid</next_state>
+      </post>
+    </rule>
+
+    <rule id="RWF1R__msg2__INBOUND">
+      <pre>
+        <current_state>RWF1R</current_state>
+        <received_message>msg2</received_message>
+        <channel>c1</channel>
+      </pre>
+      <post>
+        <next_state>Invalid</next_state>
+      </post>
+    </rule>
+
+    <rule id="RWF12R__msg2__INBOUND">
+      <pre>
+        <current_state>RWF12R</current_state>
+        <received_message>msg2</received_message>
+        <channel>c1</channel>
+      </pre>
+      <post>
+        <next_state>RWF1R</next_state>
+      </post>
+    </rule>
+
+    <rule id="RWF2R__msg2__INBOUND">
+      <pre>
+        <current_state>RWF2R</current_state>
+        <received_message>msg2</received_message>
+        <channel>c1</channel>
+      </pre>
+      <post>
+        <next_state>RWF12R</next_state>
+      </post>
+    </rule>
+
+    <rule id="RWF20R__msg2__INBOUND">
+      <pre>
+        <current_state>RWF20R</current_state>
+        <received_message>msg2</received_message>
+        <channel>c1</channel>
+      </pre>
+      <post>
+        <next_state>RWF01R</next_state>
+      </post>
+    </rule>
+
+    <rule id="RWF0R__msg2__INBOUND">
+      <pre>
+        <current_state>RWF0R</current_state>
+        <received_message>msg2</received_message>
+        <channel>c1</channel>
+      </pre>
+      <post>
+        <next_state>Invalid</next_state>
+      </post>
+    </rule>
+
+    <rule id="RINITWF12R__ack0__OUTBOUND">
+      <pre>
+        <current_state>RINITWF12R</current_state>
+      </pre>
+      <post>
+        <send_message>ack0</send_message>
+        <next_state>RINITWF12R</next_state>
+        <channel>c2</channel>
+      </post>
+    </rule>
+
+    <rule id="RWF12R__ack0__OUTBOUND">
+      <pre>
+        <current_state>RWF12R</current_state>
+      </pre>
+      <post>
+        <send_message>ack0</send_message>
+        <next_state>RWF12R</next_state>
+        <channel>c2</channel>
+      </post>
+    </rule>
+
+    <rule id="RWF2R__ack0__OUTBOUND">
+      <pre>
+        <current_state>RWF2R</current_state>
+      </pre>
+      <post>
+        <send_message>ack0</send_message>
+        <next_state>RWF2R</next_state>
+        <channel>c2</channel>
+      </post>
+    </rule>
+
+    <rule id="RWF20R__ack0__OUTBOUND">
+      <pre>
+        <current_state>RWF20R</current_state>
+      </pre>
+      <post>
+        <send_message>ack0</send_message>
+        <next_state>RWF20R</next_state>
+        <channel>c2</channel>
+      </post>
+    </rule>
+
+    <rule id="RINITWF0R__ack1__OUTBOUND">
+      <pre>
+        <current_state>RINITWF0R</current_state>
+      </pre>
+      <post>
+        <send_message>ack1</send_message>
+        <next_state>RINITWF0R</next_state>
+        <channel>c2</channel>
+      </post>
+    </rule>
+
+    <rule id="RWF01R__ack1__OUTBOUND">
+      <pre>
+        <current_state>RWF01R</current_state>
+      </pre>
+      <post>
+        <send_message>ack1</send_message>
+        <next_state>RWF01R</next_state>
+        <channel>c2</channel>
+      </post>
+    </rule>
+
+    <rule id="RWF20R__ack1__OUTBOUND">
+      <pre>
+        <current_state>RWF20R</current_state>
+      </pre>
+      <post>
+        <send_message>ack1</send_message>
+        <next_state>RWF20R</next_state>
+        <channel>c2</channel>
+      </post>
+    </rule>
+
+    <rule id="RWF0R__ack1__OUTBOUND">
+      <pre>
+        <current_state>RWF0R</current_state>
+      </pre>
+      <post>
+        <send_message>ack1</send_message>
+        <next_state>RWF0R</next_state>
+        <channel>c2</channel>
+      </post>
+    </rule>
+
+    <rule id="RWF01R__ack2__OUTBOUND">
+      <pre>
+        <current_state>RWF01R</current_state>
+      </pre>
+      <post>
+        <send_message>ack2</send_message>
+        <next_state>RWF01R</next_state>
+        <channel>c2</channel>
+      </post>
+    </rule>
+
+    <rule id="RWF1R__ack2__OUTBOUND">
+      <pre>
+        <current_state>RWF1R</current_state>
+      </pre>
+      <post>
+        <send_message>ack2</send_message>
+        <next_state>RWF1R</next_state>
+        <channel>c2</channel>
+      </post>
+    </rule>
+
+    <rule id="RWF12R__ack2__OUTBOUND">
+      <pre>
+        <current_state>RWF12R</current_state>
+      </pre>
+      <post>
+        <send_message>ack2</send_message>
+        <next_state>RWF12R</next_state>
+        <channel>c2</channel>
+      </post>
+    </rule>
+
+  </role>
+</protocol>

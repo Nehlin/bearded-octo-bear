@@ -1,0 +1,10 @@
+Send experiments
+Auto_3
+> A
+A !a> B
+B <a> C
+C !b> D
+D <b> E
+E >b> F
+F >a> F
+F !a> A

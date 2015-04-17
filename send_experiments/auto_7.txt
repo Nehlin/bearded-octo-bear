@@ -1,0 +1,9 @@
+Auto 7
+Auto_7
+> A
+A > B
+B +x> C
+C a!a> B
+C b!b> D
+D -x> E
+E c!c> A

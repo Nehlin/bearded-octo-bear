@@ -1,0 +1,12 @@
+Send experiments
+Auto_1
+> A
+A <x> B
+A >y> E
+B !b> B
+B !a> C
+B <y> D
+C >x> C
+C !b> D
+D !d> E
+E !c> A

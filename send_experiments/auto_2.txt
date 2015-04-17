@@ -1,0 +1,8 @@
+Send experiments
+Auto_2
+> A
+A <x> B
+B !c> B
+B <x> C
+C >x> C
+C !b> D

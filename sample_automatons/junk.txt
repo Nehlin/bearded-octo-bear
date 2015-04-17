@@ -1,0 +1,26 @@
+Junk
+1
+> A
+A > B
+A !x> C
+A !y> D
+B > C
+B ?x> A
+B ?y> D
+C > A
+C > D
+D !z> E
+D >
+,
+2a
+> A
+A > B
+A !x> C
+A !y> D
+B > C
+B ?x> A
+B ?y> D
+C > A
+C > D
+E !z> D
+D >

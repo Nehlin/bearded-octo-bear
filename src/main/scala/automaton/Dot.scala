@@ -21,7 +21,7 @@ object Dot {
 
     def transitionFun(transition: Transition): String = {
       if (transitionStrings.contains(transition.toString)) {
-        fatTransition(transition)
+        redTransition(transition)
       } else {
         normalTransition(transition)
       }
@@ -121,6 +121,10 @@ object Dot {
 
   private def dottedTransition(transition: Transition) : String = {
     makeTransition(transition, Some("dashed"), None)
+  }
+
+  private def redTransition(transition: Transition): String = {
+    makeTransition(transition, None, Some("orange"))
   }
 
   private def fatTransition(transition: Transition) : String = {

@@ -1,0 +1,19 @@
+Protocol Name:4
+A
+> A0A
+A0A c1!msg0> A1A
+A4A c1!msg0> A5A
+A2A c1!msg1> A3A
+A4A c1!msg1> A5A
+A1A c2?ack0> A2A
+A3A c2?ack1> A4A
+,
+B
+> B0B
+B0B c1?msg0> B1B
+B4B c1?msg0> B5B
+B2B c1?msg1> B3B
+B4B c1?msg1> Invalid
+B1B c2!ack0> B2B
+B3B c2!ack1> B4B
+Invalid >

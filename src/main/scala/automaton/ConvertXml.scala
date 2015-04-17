@@ -80,7 +80,7 @@ object ConvertXml {
           val intermediate = makeIntermediateName(states, intermediateStates.toSet)
 
           transitionStrings += makeTransitionString(from, intermediate, receiveString(rcvChn, rcvMsg))
-          transitionStrings += makeTransitionString(intermediate, to, receiveString(sndChn, sndMsg))
+          transitionStrings += makeTransitionString(intermediate, to, sendString(sndChn, sndMsg))
 
           intermediateStates += intermediate
         } else if (containsMessage(post)) {

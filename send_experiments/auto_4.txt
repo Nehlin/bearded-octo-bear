@@ -1,0 +1,15 @@
+Send experiments
+Auto_4
+> A
+A +a> B
+B -a> C
+C +b> D
+D +b> B
+B -b> E
+E +c> F
+F +c> B
+B > G
+G -c> H
+G -a> C
+G -b> E
+H !a> G

@@ -1,3 +1,5 @@
+import java.io.ByteArrayInputStream
+
 import automaton._
 
 import java.nio.file.{Paths, Files}
@@ -42,150 +44,190 @@ object Y {
     getOpt
   }
 
-  def parenInterval(string: String): (Int, Int) = {
-    val startPos = string.indexOf('(')
-    val afterFirstParen = string.substring(startPos + 1)
-    var numParen = 1
-    var length = 0
+  def dfaReachability(inputFile: String,
+                      z3Path: String,
+                      numPhases: Int,
+                      resultDir: String,
+                      outputOriginalDot: Boolean,
+                      outputPhaseDot: Boolean,
+                      outputPresburger: Boolean,
+                      outputPathDot: Boolean,
+                      outputMap: Boolean): Unit = {
 
-    while(numParen > 0 && length < afterFirstParen.length) {
-      val currentChar = afterFirstParen.charAt(length)
-      if (currentChar == '(') {
-        numParen += 1
-      } else if (currentChar == ')') {
-        numParen -= 1
+    val sys = new Sys(Automaton.readAutomatonFile(inputFile))
+
+    if (outputOriginalDot) {
+      for (auto <- sys.automatons) {
+        Files.write(Paths.get(resultDir + auto.automatonName + "_original.dot"), Dot.make(auto).getBytes(StandardCharsets.UTF_8))
       }
-      length += 1
     }
 
-    (startPos, startPos + length + 1)
-  }
-
-  def getModelStrings(string: String):List[String] = {
-    if (!string.contains('(')) {
-      List[String]()
-    } else {
-      val (from, to) = parenInterval(string)
-      val currentModel = string.substring(from + 1, to - 1)
-      getModelStrings(string.substring(to)) :+ currentModel
-    }
-  }
-
-  def extractValue(modelString: String): Option[(String, Int)] = {
-    val split = modelString.split(' ')
-    if (split(0) == "define-fun") {
-      val name = split(1)
-      val value = if (split(3) == "Bool") {
-        if (split(4) == "false") {
-          0
-        } else {
-          1
+    if (outputPhaseDot) {
+      val (reachable, autos, _) = sys.automatonsWithPhases(numPhases)
+      if (reachable) {
+        for (auto <- autos) {
+          Files.write(Paths.get(resultDir + auto.automatonName + "_phase.dot"), Dot.make(auto).getBytes(StandardCharsets.UTF_8))
         }
-      } else if (split.length == 5) {
-        // Single number
-        split(4).toInt
       } else {
-        // Negative number of form (- num)
-        (split(4) + split(5)).stripPrefix("(").stripSuffix(")").toInt
+        println("End state is unreachable, phase automatons not printed.")
       }
-      Some(name, value)
-    } else {
-      None
     }
-  }
 
-  def parseModel(resultString: String) = {
-    val cleanedResult = resultString.replace('\t', ' ').replace('\r', ' ').replace('\n', ' ').replaceAll(" +", " ")
+    val presburgerResult = Presburger.makePresburger(sys, numPhases)
+    if (presburgerResult.isEmpty ) {
+      println("construction shows target state is unreachable")
+      println("unsat")
+      scala.sys.exit()
+    }
 
-    val (from, to) = parenInterval(cleanedResult)
-    val modelString = cleanedResult.substring(from + 1, to - 1)
-    getModelStrings(modelString).map(extractValue).flatten.toMap
-  }
+    if (outputPresburger) {
+      Files.write(Paths.get(resultDir + "presburger.smt2"), presburgerResult.get.getBytes(StandardCharsets.UTF_8))
+    }
 
-  def parseResult(resultString: String): Option[Map[String, Int]] = {
-    if (resultString.startsWith("sat")) {
-      Some(parseModel(resultString))
+    if (outputMap) {
+      val stateMapString = sys.translationMaps.map(translationMap => {
+        translationMap.keys.map(key => key + " => " + translationMap(key))
+      }).flatten.sorted.mkString("\n")
+
+      val channelMapString = sys.channelMap.keys.map(key => key + " => " + sys.channelMap(key)).toList.sorted.mkString("\n")
+      val messageMapString = sys.messageMap.keys.map(key => key + " => " + sys.messageMap(key)).toList.sorted.mkString("\n")
+
+
+
+
+      //Files.write(Paths.get(resultDir + "map.txt"), state.getBytes(StandardCharsets.UTF_8))
+    }
+
+    val z3 = List(z3Path, "-in")
+    val is = new ByteArrayInputStream(presburgerResult.get.getBytes("UTF-8"))
+
+    val lines = (z3 #< is).lineStream_!
+    val model = if (lines.head.trim == "sat") {
+      println("sat")
+      lines.tail.mkString("\n")
+    } else if (lines.head.trim == "unsat") {
+      println("unsat")
+      scala.sys.exit()
     } else {
-      None
+      val errors = lines.mkString("\n")
+      println("error:\n" + errors)
+      scala.sys.exit(-1)
     }
   }
 
   def main(args:Array[String]) {
 
-    ConvertXml.xmlToFile("sample_xml/ABP.xml", "result/converted.txt")
+    // TODO: handle initial state being removed
 
-    val autoWithEnd = Automaton.readAutomatonFile("result/converted.txt")
+    val inputFile = "send_experiments/ex1.txt"
+    //val inputFile = "sample_automatons/knorr.txt"
+    val resultDir = "result/"
+    val numPhases = 3
 
-    //val (pName, pType, pCapacity, chn, msg, autos) = readAutomatonFile("sample_automatons/test.txt")
-    //val xmlElem = writeAutomatonFile(pName, pType, pCapacity, chn, msg, autos)
+    val optionFun = getOption(args)
+    val z3PathOpt = optionFun("z3")
+    if (!z3PathOpt.isDefined) {
+      println("z3 path is not set")
+      scala.sys.exit(-1)
+    }
+    val z3Path = z3PathOpt.get
 
-    val inputFile = "result/input.smt2"
-    val outputFile = "result/output.txt"
-    val outputDot = "result/p_"
-    val originalDot = "result/o_"
+    //dfaReachability(inputFile, z3Path, numPhases, resultDir, true, false, true, true, true)
+
+    val sys = new Sys(Automaton.readAutomatonFile(inputFile))
+
+    /*Phase.getSaturationValuesWithTransforms(sys.automatons, sys.endStatesNormalised.flatten, numPhases,
+      Phase.noTransform, Phase.noTransform, Phase.noTransform)*/
 
 
-    val sys = new Sys(autoWithEnd)
-    val presburgerString = Presburger.makePresburger(sys, 1)
-    Files.write(Paths.get(inputFile), presburgerString.getBytes(StandardCharsets.UTF_8))
+    val (autos, _, _) = Automaton.readAutomatonFile(inputFile).unzip3
+    val auto = autos.head
+    val (hoppo, hoppot) = Stack.hoppo(auto, 4)
+    val (x, y) = Stack.temp(auto)
+
+
+
+    Files.write(Paths.get(resultDir + auto.automatonName + ".dot"), Dot.make(auto).getBytes(StandardCharsets.UTF_8))
+    //Files.write(Paths.get(resultDir + auto.automatonName + "_t.dot"), Dot.makeHl2(x, y).getBytes(StandardCharsets.UTF_8))
+    //Files.write(Paths.get(resultDir + auto.automatonName + "_h.dot"), Dot.makeHl2(hoppo, hoppot).getBytes(StandardCharsets.UTF_8))
+    //Files.write(Paths.get(resultDir + auto.automatonName + "_r.dot"), Dot.makeHl2(hoppo.reachableCopy, hoppot).getBytes(StandardCharsets.UTF_8))
+
+    return
+
+    val (_, autoWithPhases, _) = sys.automatonsWithPhases(numPhases)
     for (auto <- sys.automatons) {
-      Files.write(Paths.get(originalDot + auto.automatonName + ".dot"),
+      Files.write(Paths.get(resultDir + auto.automatonName + "_original.dot"),
+        Dot.make(auto).getBytes(StandardCharsets.UTF_8))
+    }
+    for (auto <- autoWithPhases) {
+
+      Files.write(Paths.get(resultDir + auto.automatonName + "_phase.dot"),
         Dot.make(auto).getBytes(StandardCharsets.UTF_8))
     }
 
-    val optionFun = getOption(args)
-    val z3Path = optionFun("z3")
-    if (z3Path.isDefined) {
-      val invokeCommand = z3Path.get + " " + inputFile
-      val z3Result = invokeCommand.!!
-      val result = parseResult(z3Result)
-      if (result.isDefined) {
-        println("satisfiable")
-        if (optionFun("pres") == Some("y")) {
-          Files.write(Paths.get(outputFile), z3Result.getBytes(StandardCharsets.UTF_8))
-        }
-
-        val occurrences = result.get.filter{case (str, int) => str.startsWith("occ_") && int == 1}.map{case (str, _) => str.stripPrefix("occ_")}
-        val occTransitions = occurrences.map(sys.transitionFromVarName).toSet
-        for (auto <- sys.automatons) {
-          Files.write(Paths.get(outputDot + auto.automatonName + ".dot"),
-            Dot.makeHl2(auto, occTransitions).getBytes(StandardCharsets.UTF_8))
-        }
-
-        val sequence = result.get.filter{case (str, _) => str.startsWith("seq_")}.toList.sortBy(_._2).map{case (str, _) => str.stripPrefix("seq_")}
-        val occurringSequences = sequence.filter(tStr => occurrences.contains(tStr))
-        for (t <- occurringSequences) {
-          val split = t.split('_')
-          println(split.head + " -> " + split.last)
-        }
-
-      } else {
-        println("unsatisfiable")
-      }
+    for (tm <- sys.translationMaps) {
+      println(tm)
     }
 
+                                  val presburgerResult = Presburger.makePresburger(sys, numPhases)
+                                  if (presburgerResult.isEmpty ) {
+                                    println("construction shows target state is unreachable")
+                                    println("unsat")
+                                    scala.sys.exit()
+                                  }
+    val presburgerString = presburgerResult.get
+    if (optionFun("pres") == Some("y")) {
+      Files.write(Paths.get(resultDir + "input.smt2"), presburgerString.getBytes(StandardCharsets.UTF_8))
+    }
+
+    val z3 = List(z3Path, "-in")
+    val is = new ByteArrayInputStream(presburgerString.getBytes("UTF-8"))
+
+    val lines = (z3 #< is).lineStream_!
+    val model = if (lines.head.trim == "sat") {
+      println("sat")
+      lines.tail.mkString("\n")
+    } else if (lines.head.trim == "unsat") {
+      println("unsat")
+      scala.sys.exit()
+    } else {
+      val errors = lines.mkString("\n")
+      println("error:\n" + errors)
+      scala.sys.exit(-1)
+    }
 
     /*
-    val xml = XML.loadFile(filename)
-    val process = (xml \\ "protocol" \\ "role").head
+    val modelMap = ModelParser.parseZ3(model)
 
+    val occurrences = modelMap.filter{case (str, int) => str.startsWith("occ_") && int == 1}.map{case (str, _) => str.stripPrefix("occ_")}
+    val occTransitions = occurrences.map(sys.transitionFromVarName).toSet
 
-    val original = Automaton.fromXml(process)
-    val (normalised, _, _) = original.normaliseNames(100)
-    Files.write(Paths.get("dot/0normalised.dot"), Dot.make(normalised).getBytes(StandardCharsets.UTF_8))
+    for (auto <- autoWithPhases) {
+      Files.write(Paths.get(resultDir + auto.automatonName + "_path.dot"),
+        Dot.makeHl2(auto, occTransitions).getBytes(StandardCharsets.UTF_8))
+    }
 
-    //val (combined, transitions) = Phase.makeCondensedPrint(original, 5)
-    //val (condensedSend, _) = Phase.condenseSendAutomaton(original.sendCopy)
-    //val reachable = combined.reachableCopy
-
-    //val reachableNames = Some(combined.reachableStates.map(_.name))
-
-    Files.write(Paths.get("dot/1original.dot"), Dot.make(original).getBytes(StandardCharsets.UTF_8))
-    Files.write(Paths.get("dot/2send.dot"), Dot.make(original.sendCopy).getBytes(StandardCharsets.UTF_8))
-    Files.write(Paths.get("dot/3send_scc.dot"), Dot.highlightScc(original.sendCopy).getBytes(StandardCharsets.UTF_8))
-    //Files.write(Paths.get("dot/4send_condensed.dot"), Dot.make(condensedSend).getBytes(StandardCharsets.UTF_8))
-    //Files.write(Paths.get("dot/5combined.dot"), Dot.makeHighlighted(combined, transitions, reachableNames).getBytes(StandardCharsets.UTF_8))
-    //Files.write(Paths.get("dot/6combined_reachable.dot"), Dot.makeHighlighted(reachable, transitions, None).getBytes(StandardCharsets.UTF_8))
+    val sequence = modelMap.filter{case (str, _) => str.startsWith("seq_")}.toList.sortBy(_._2).map{case (str, _) => str.stripPrefix("seq_")}
+    val occurringSequences = sequence.filter(tStr => occurrences.contains(tStr))
+    if (occurringSequences.isEmpty) {
+      println("no occurring seq, this is probably wrong")
+    }
+    for (t <- occurringSequences) {
+      val (from, to, trans) = if (t.contains("_Nop_")) {
+        val sp = t.split("_Nop_")
+        (sp(0), sp(1), "")
+      } else {
+        val (sp, op) = if (t.contains("_Rcv_")) {
+          (t.split("_Rcv_"), "?")
+        } else {
+          (t.split("_Snd_"), "!")
+        }
+        val fr = sp(0).split('_')
+        val to = sp(1).split('_')
+        (fr(0) + "_" + fr(1), to(1) + "_" + to(2), fr(2) + " " + op + " " + to(0))
+      }
+      println(from + " -> " + to + "    " + trans)
+    }
     */
   }
 }

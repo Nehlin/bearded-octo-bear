@@ -1,0 +1,17 @@
+Trim test
+Auto 1
+> A
+A > B
+B > A
+B > C
+A > D
+E > D
+E > C
+C > F
+F > I
+I > F
+B > G
+H > E
+F >
+G >
+H >

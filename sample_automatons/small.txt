@@ -1,3 +1,4 @@
+Test:3
 Automaton 1
 > A
 A !a> B
@@ -9,4 +10,6 @@ Automaton 2
 > A
 A ?b> B
 B !c> C
+C > B
+C > A
 C >

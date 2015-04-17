@@ -1,0 +1,1226 @@
+<protocol name="Alternating Bit Protocol" medium="STUTT_FIFO" capacity="4">
+  <messages>
+     <message>Aaf</message>
+     <message>Aat</message>
+     <message>KS</message>
+     <message>Kk0</message>
+     <message>Kk1</message>
+     <message>KkS</message>
+     <message>Kkfirst</message>
+     <message>Kklast</message>
+     <message>Ll0</message>
+     <message>Ll1</message>
+     <message>LlS</message>
+     <message>Llast</message>
+     <message>Llfirst</message>
+     <message>Lllast</message>
+     <message>Rrf</message>
+     <message>Rrt</message>
+  </messages>
+  <channels>
+     <channel>cr</channel>
+     <channel>cs</channel>
+  </channels>
+
+  <role name="RECEIVER">
+    <states>
+      <state type="initial">Q0Q</state>
+      <state>Q010Q</state>
+      <state>Q011Q</state>
+      <state>Q012Q</state>
+      <state>Q013Q</state>
+      <state>Q014Q</state>
+      <state>Q1Q</state>
+      <state>Q100Q</state>
+      <state>Q101Q</state>
+      <state>Q102Q</state>
+      <state>Q103Q</state>
+      <state>Q104Q</state>
+      <state>Q110Q</state>
+      <state>Q120Q</state>
+      <state>Q121Q</state>
+      <state>Q122Q</state>
+      <state>Q2Q</state>
+      <state>Q220Q</state>
+      <state>Q230Q</state>
+      <state>Q231Q</state>
+      <state>Q232Q</state>
+      <state>Q3Q</state>
+      <state>Q322Q</state>
+      <state>Q330Q</state>
+      <state>Q4Q</state>
+      <state>Q400Q</state>
+      <state>Q401Q</state>
+      <state>Q402Q</state>
+      <state>Q440Q</state>
+      <state>QI0Q</state>
+      <state>QI1Q</state>
+      <state>QI2Q</state>
+      <state>QJ0Q</state>
+      <state>QJ1Q</state>
+      <state>QJ2Q</state>
+      <state>QJ3Q</state>
+      <state>QJ4Q</state>
+      <state>Invalid</state>
+    </states>
+    <rule id="Q122Q__Ll0__OUTBOUND">
+      <pre>
+        <current_state>Q122Q</current_state>
+      </pre>
+      <post>
+        <send_message>Ll0</send_message>
+        <next_state>Q2Q</next_state>
+        <channel>cs</channel>
+      </post>
+    </rule>
+
+    <rule id="Q220Q__Ll0__OUTBOUND">
+      <pre>
+        <current_state>Q220Q</current_state>
+      </pre>
+      <post>
+        <send_message>Ll0</send_message>
+        <next_state>Q2Q</next_state>
+        <channel>cs</channel>
+      </post>
+    </rule>
+
+    <rule id="Q322Q__Ll0__OUTBOUND">
+      <pre>
+        <current_state>Q322Q</current_state>
+      </pre>
+      <post>
+        <send_message>Ll0</send_message>
+        <next_state>Q2Q</next_state>
+        <channel>cs</channel>
+      </post>
+    </rule>
+
+    <rule id="Q232Q__Ll1__OUTBOUND">
+      <pre>
+        <current_state>Q232Q</current_state>
+      </pre>
+      <post>
+        <send_message>Ll1</send_message>
+        <next_state>Q3Q</next_state>
+        <channel>cs</channel>
+      </post>
+    </rule>
+
+    <rule id="Q330Q__Ll1__OUTBOUND">
+      <pre>
+        <current_state>Q330Q</current_state>
+      </pre>
+      <post>
+        <send_message>Ll1</send_message>
+        <next_state>Q3Q</next_state>
+        <channel>cs</channel>
+        
+      </post>
+    </rule>
+
+    <rule id="Q012Q__Llfirst__OUTBOUND">
+      <pre>
+        <current_state>Q012Q</current_state>
+      </pre>
+      <post>
+        <send_message>Llfirst</send_message>
+        <next_state>Q013Q</next_state>
+        <channel>cs</channel>
+      </post>
+    </rule>
+
+    <rule id="Q110Q__Llfirst__OUTBOUND">
+      <pre>
+        <current_state>Q110Q</current_state>
+      </pre>
+      <post>
+        <send_message>Llfirst</send_message>
+        <next_state>Q1Q</next_state>
+        <channel>cs</channel>
+      </post>
+    </rule>
+
+    <rule id="Q440Q__Llast__OUTBOUND">
+      <pre>
+        <current_state>Q440Q</current_state>
+      </pre>
+      <post>
+        <send_message>Llast</send_message>
+        <next_state>Q4Q</next_state>
+        <channel>cs</channel>
+      </post>
+    </rule>
+
+    <rule id="QI2Q__Llast__OUTBOUND">
+      <pre>
+        <current_state>QI2Q</current_state>
+      </pre>
+      <post>
+        <send_message>Llast</send_message>
+        <next_state>Q4Q</next_state>
+        <channel>cs</channel>
+      </post>
+    </rule>
+
+    <rule id="Q121Q__Kk0__INBOUND">
+      <pre>
+        <current_state>Q121Q</current_state>
+        <received_message>Kk0</received_message>
+        <channel>cr</channel>
+      </pre>
+      <post>
+        <next_state>Q122Q</next_state>
+      </post>
+    </rule>
+
+    <rule id="Q2Q__Kk0__INBOUND">
+      <pre>
+        <current_state>Q2Q</current_state>
+        <received_message>Kk0</received_message>
+        <channel>cr</channel>
+      </pre>
+      <post>
+        <next_state>Q220Q</next_state>
+      </post>
+    </rule>
+
+    <rule id="QI1Q__Kk0__INBOUND">
+      <pre>
+        <current_state>QI1Q</current_state>
+        <received_message>Kk0</received_message>
+        <channel>cr</channel>
+      </pre>
+      <post>
+        <next_state>Q322Q</next_state>
+      </post>
+    </rule>
+
+    <rule id="Q1Q__Kk1__INBOUND">
+      <pre>
+        <current_state>Q1Q</current_state>
+        <received_message>Kk1</received_message>
+        <channel>cr</channel>
+      </pre>
+      <post>
+        <next_state>Invalid</next_state>
+      </post>
+    </rule>
+
+    <rule id="Q231Q__Kk1__INBOUND">
+      <pre>
+        <current_state>Q231Q</current_state>
+        <received_message>Kk1</received_message>
+        <channel>cr</channel>
+      </pre>
+      <post>
+        <next_state>Q232Q</next_state>
+      </post>
+    </rule>
+
+    <rule id="Q3Q__Kk1__INBOUND">
+      <pre>
+        <current_state>Q3Q</current_state>
+        <received_message>Kk1</received_message>
+        <channel>cr</channel>
+      </pre>
+      <post>
+        <next_state>Q330Q</next_state>
+      </post>
+    </rule>
+
+    <rule id="Q102Q__KkS__INBOUND">
+      <pre>
+        <current_state>Q102Q</current_state>
+        <received_message>KkS</received_message>
+        <channel>cr</channel>
+      </pre>
+      <post>
+        <next_state>Q103Q</next_state>
+      </post>
+    </rule>
+
+    <rule id="Q4Q__KkS__INBOUND">
+      <pre>
+        <current_state>Q4Q</current_state>
+        <received_message>KkS</received_message>
+        <channel>cr</channel>
+      </pre>
+      <post>
+        <next_state>Q400Q</next_state>
+      </post>
+    </rule>
+
+    <rule id="QJ2Q__KkS__INBOUND">
+      <pre>
+        <current_state>QJ2Q</current_state>
+        <received_message>KkS</received_message>
+        <channel>cr</channel>
+      </pre>
+      <post>
+        <next_state>QJ3Q</next_state>
+      </post>
+    </rule>
+
+    <rule id="Q101Q__KkS__OUTBOUND">
+      <pre>
+        <current_state>Q101Q</current_state>
+      </pre>
+      <post>
+        <send_message>KkS</send_message>
+        <next_state>Q102Q</next_state>
+        <channel>cs</channel>
+      </post>
+    </rule>
+
+    <rule id="Q400Q__KkS__OUTBOUND">
+      <pre>
+        <current_state>Q400Q</current_state>
+      </pre>
+      <post>
+        <send_message>KkS</send_message>
+        <next_state>Q401Q</next_state>
+        <channel>cs</channel>
+      </post>
+    </rule>
+
+    <rule id="QJ1Q__KkS__OUTBOUND">
+      <pre>
+        <current_state>QJ1Q</current_state>
+      </pre>
+      <post>
+        <send_message>KkS</send_message>
+        <next_state>QJ2Q</next_state>
+        <channel>cs</channel>
+      </post>
+    </rule>
+
+    <rule id="Q011Q__Kkfirst__INBOUND">
+      <pre>
+        <current_state>Q011Q</current_state>
+        <received_message>Kkfirst</received_message>
+        <channel>cr</channel>
+      </pre>
+      <post>
+        <next_state>Q012Q</next_state>
+      </post>
+    </rule>
+
+    <rule id="Q1Q__Kkfirst__INBOUND">
+      <pre>
+        <current_state>Q1Q</current_state>
+        <received_message>Kkfirst</received_message>
+        <channel>cr</channel>
+      </pre>
+      <post>
+        <next_state>Q110Q</next_state>
+      </post>
+    </rule>
+
+    <rule id="Q2Q__Kkfirst__INBOUND">
+      <pre>
+        <current_state>Q2Q</current_state>
+        <received_message>Kkfirst</received_message>
+        <channel>cr</channel>
+      </pre>
+      <post>
+        <next_state>Invalid</next_state>
+      </post>
+    </rule>
+
+    <rule id="Q1Q__Kklast__INBOUND">
+      <pre>
+        <current_state>Q1Q</current_state>
+        <received_message>Kklast</received_message>
+        <channel>cr</channel>
+      </pre>
+      <post>
+        <next_state>QI0Q</next_state>
+      </post>
+    </rule>
+
+    <rule id="Q2Q__Kklast__INBOUND">
+      <pre>
+        <current_state>Q2Q</current_state>
+        <received_message>Kklast</received_message>
+        <channel>cr</channel>
+      </pre>
+      <post>
+        <next_state>QI0Q</next_state>
+      </post>
+    </rule>
+
+    <rule id="Q3Q__Kklast__INBOUND">
+      <pre>
+        <current_state>Q3Q</current_state>
+        <received_message>Kklast</received_message>
+        <channel>cr</channel>
+      </pre>
+      <post>
+        <next_state>QI0Q</next_state>
+      </post>
+    </rule>
+
+    <rule id="Q4Q__Kklast__INBOUND">
+      <pre>
+        <current_state>Q4Q</current_state>
+        <received_message>Kklast</received_message>
+        <channel>cr</channel>
+      </pre>
+      <post>
+        <next_state>Q440Q</next_state>
+      </post>
+    </rule>
+
+    <rule id="Q1Q__Aat__INBOUND">
+      <pre>
+        <current_state>Q1Q</current_state>
+        <received_message>Aat</received_message>
+        <channel>cr</channel>
+      </pre>
+      <post>
+        <next_state>Q100Q</next_state>
+      </post>
+    </rule>
+
+    <rule id="Q2Q__Aat__INBOUND">
+      <pre>
+        <current_state>Q2Q</current_state>
+        <received_message>Aat</received_message>
+        <channel>cr</channel>
+      </pre>
+      <post>
+        <next_state>QJ0Q</next_state>
+      </post>
+    </rule>
+
+    <rule id="Q3Q__Aat__INBOUND">
+      <pre>
+        <current_state>Q3Q</current_state>
+        <received_message>Aat</received_message>
+        <channel>cr</channel>
+      </pre>
+      <post>
+        <next_state>QJ0Q</next_state>
+      </post>
+    </rule>
+
+    <rule id="Q0Q__Aaf__INBOUND">
+      <pre>
+        <current_state>Q0Q</current_state>
+        <received_message>Aaf</received_message>
+        <channel>cr</channel>
+      </pre>
+      <post>
+        <next_state>Q010Q</next_state>
+      </post>
+    </rule>
+
+    <rule id="Q1Q__Aaf__INBOUND">
+      <pre>
+        <current_state>Q1Q</current_state>
+        <received_message>Aaf</received_message>
+        <channel>cr</channel>
+      </pre>
+      <post>
+        <next_state>Q120Q</next_state>
+      </post>
+    </rule>
+
+    <rule id="Q2Q__Aaf__INBOUND">
+      <pre>
+        <current_state>Q2Q</current_state>
+        <received_message>Aaf</received_message>
+        <channel>cr</channel>
+      </pre>
+      <post>
+        <next_state>Q230Q</next_state>
+      </post>
+    </rule>
+
+    <rule id="QI0Q__Aaf__INBOUND">
+      <pre>
+        <current_state>QI0Q</current_state>
+        <received_message>Aaf</received_message>
+        <channel>cr</channel>
+      </pre>
+      <post>
+        <next_state>QI1Q</next_state>
+      </post>
+    </rule>
+
+    <rule id="Q100Q__Aat__OUTBOUND">
+      <pre>
+        <current_state>Q100Q</current_state>
+      </pre>
+      <post>
+        <send_message>Aat</send_message>
+        <next_state>Q101Q</next_state>
+        <channel>cs</channel>
+      </post>
+    </rule>
+
+    <rule id="QJ0Q__Aat__OUTBOUND">
+      <pre>
+        <current_state>QJ0Q</current_state>
+      </pre>
+      <post>
+        <send_message>Aat</send_message>
+        <next_state>QJ1Q</next_state>
+        <channel>cs</channel>
+      </post>
+    </rule>
+
+    <rule id="Q010Q__Aaf__OUTBOUND">
+      <pre>
+        <current_state>Q010Q</current_state>
+      </pre>
+      <post>
+        <send_message>Aaf</send_message>
+        <next_state>Q011Q</next_state>
+        <channel>cs</channel>
+      </post>
+    </rule>
+
+    <rule id="Q120Q__Aaf__OUTBOUND">
+      <pre>
+        <current_state>Q120Q</current_state>
+      </pre>
+      <post>
+        <send_message>Aaf</send_message>
+        <next_state>Q121Q</next_state>
+        <channel>cs</channel>
+      </post>
+    </rule>
+
+    <rule id="Q230Q__Aaf__OUTBOUND">
+      <pre>
+        <current_state>Q230Q</current_state>
+      </pre>
+      <post>
+        <send_message>Aaf</send_message>
+        <next_state>Q231Q</next_state>
+        <channel>cs</channel>
+      </post>
+    </rule>
+
+    <rule id="QI1Q__Aaf__OUTBOUND">
+      <pre>
+        <current_state>QI1Q</current_state>
+      </pre>
+      <post>
+        <send_message>Aaf</send_message>
+        <next_state>QI2Q</next_state>
+        <channel>cs</channel>
+      </post>
+    </rule>
+
+    <rule id="Q013Q__Rrt__INBOUND">
+      <pre>
+        <current_state>Q013Q</current_state>
+        <received_message>Rrt</received_message>
+        <channel>cr</channel>
+      </pre>
+      <post>
+        <next_state>Q014Q</next_state>
+      </post>
+    </rule>
+
+    <rule id="Q103Q__Rrt__INBOUND">
+      <pre>
+        <current_state>Q103Q</current_state>
+        <received_message>Rrt</received_message>
+        <channel>cr</channel>
+      </pre>
+      <post>
+        <next_state>Q104Q</next_state>
+      </post>
+    </rule>
+
+    <rule id="Q401Q__Rrt__INBOUND">
+      <pre>
+        <current_state>Q401Q</current_state>
+        <received_message>Rrt</received_message>
+        <channel>cr</channel>
+      </pre>
+      <post>
+        <next_state>Q402Q</next_state>
+      </post>
+    </rule>
+
+    <rule id="QJ3Q__Rrt__INBOUND">
+      <pre>
+        <current_state>QJ3Q</current_state>
+        <received_message>Rrt</received_message>
+        <channel>cr</channel>
+      </pre>
+      <post>
+        <next_state>QJ4Q</next_state>
+      </post>
+    </rule>
+
+    <rule id="Q013Q__Rrf__INBOUND">
+      <pre>
+        <current_state>Q013Q</current_state>
+        <received_message>Rrf</received_message>
+        <channel>cr</channel>
+      </pre>
+      <post>
+        <next_state>Q014Q</next_state>
+      </post>
+    </rule>
+
+    <rule id="Q103Q__Rrf__INBOUND">
+      <pre>
+        <current_state>Q103Q</current_state>
+        <received_message>Rrf</received_message>
+        <channel>cr</channel>
+      </pre>
+      <post>
+        <next_state>Q104Q</next_state>
+      </post>
+    </rule>
+
+    <rule id="Q401Q__Rrf__INBOUND">
+      <pre>
+        <current_state>Q401Q</current_state>
+        <received_message>Rrf</received_message>
+        <channel>cr</channel>
+      </pre>
+      <post>
+        <next_state>Q402Q</next_state>
+      </post>
+    </rule>
+
+    <rule id="QJ3Q__Rrf__INBOUND">
+      <pre>
+        <current_state>QJ3Q</current_state>
+        <received_message>Rrf</received_message>
+        <channel>cr</channel>
+      </pre>
+      <post>
+        <next_state>QJ4Q</next_state>
+      </post>
+    </rule>
+
+    <rule id="Q014Q__Rrt__OUTBOUND">
+      <pre>
+        <current_state>Q014Q</current_state>
+      </pre>
+      <post>
+        <send_message>Rrt</send_message>
+        <next_state>Q1Q</next_state>
+        <channel>cs</channel>
+      </post>
+    </rule>
+
+    <rule id="Q104Q__Rrf__OUTBOUND">
+      <pre>
+        <current_state>Q104Q</current_state>
+      </pre>
+      <post>
+        <send_message>Rrf</send_message>
+        <next_state>Q0Q</next_state>
+        <channel>cs</channel>
+      </post>
+    </rule>
+
+    <rule id="Q402Q__Rrf__OUTBOUND">
+      <pre>
+        <current_state>Q402Q</current_state>
+      </pre>
+      <post>
+        <send_message>Rrf</send_message>
+        <next_state>Q0Q</next_state>
+        <channel>cs</channel>
+      </post>
+    </rule>
+
+    <rule id="QJ4Q__Rrf__OUTBOUND">
+      <pre>
+        <current_state>QJ4Q</current_state>
+      </pre>
+      <post>
+        <send_message>Rrf</send_message>
+        <next_state>Q0Q</next_state>
+        <channel>cs</channel>
+      </post>
+    </rule>
+
+  </role>
+  <role name="SENDER">
+    <states>
+      <state type="initial">W0W</state>
+      <state>W2W</state>
+      <state>W3W</state>
+      <state>W4W</state>
+      <state>W5W</state>
+      <state>W6W</state>
+      <state>W7W</state>
+      <state>W8W</state>
+      <state>W9W</state>
+      <state>WI0W</state>
+      <state>WI1W</state>
+      <state>WI2W</state>
+      <state>WI3W</state>
+      <state>WI4W</state>
+      <state>WI5W</state>
+      <state>WI6W</state>
+      <state>WI7W</state>
+      <state>WI8W</state>
+      <state>WI9W</state>
+      <state>WIAW</state>
+      <state>WIRW</state>
+      <state>Invalid</state>
+    </states>
+    <rule id="W2W__Kkfirst__OUTBOUND">
+      <pre>
+        <current_state>W2W</current_state>
+      </pre>
+      <post>
+        <send_message>Kkfirst</send_message>
+        <next_state>W2W</next_state>
+        <channel>cr</channel>
+      </post>
+    </rule>
+
+    <rule id="WIRW__Kkfirst__OUTBOUND">
+      <pre>
+        <current_state>WIRW</current_state>
+      </pre>
+      <post>
+        <send_message>Kkfirst</send_message>
+        <next_state>W2W</next_state>
+        <channel>cr</channel>
+      </post>
+    </rule>
+
+    <rule id="W3W__Kk0__OUTBOUND">
+      <pre>
+        <current_state>W3W</current_state>
+      </pre>
+      <post>
+        <send_message>Kk0</send_message>
+        <next_state>W4W</next_state>
+        <channel>cr</channel>
+      </post>
+    </rule>
+
+    <rule id="W4W__Kk0__OUTBOUND">
+      <pre>
+        <current_state>W4W</current_state>
+      </pre>
+      <post>
+        <send_message>Kk0</send_message>
+        <next_state>W4W</next_state>
+        <channel>cr</channel>
+      </post>
+    </rule>
+
+    <rule id="W5W__Kk0__OUTBOUND">
+      <pre>
+        <current_state>W5W</current_state>
+      </pre>
+      <post>
+        <send_message>Kk0</send_message>
+        <next_state>W6W</next_state>
+        <channel>cr</channel>
+      </post>
+    </rule>
+
+    <rule id="W6W__Kk0__OUTBOUND">
+      <pre>
+        <current_state>W6W</current_state>
+      </pre>
+      <post>
+        <send_message>Kk0</send_message>
+        <next_state>W6W</next_state>
+        <channel>cr</channel>
+      </post>
+    </rule>
+
+    <rule id="W3W__Kk1__OUTBOUND">
+      <pre>
+        <current_state>W3W</current_state>
+      </pre>
+      <post>
+        <send_message>Kk1</send_message>
+        <next_state>W4W</next_state>
+        <channel>cr</channel>
+      </post>
+    </rule>
+
+    <rule id="W4W__Kk1__OUTBOUND">
+      <pre>
+        <current_state>W4W</current_state>
+      </pre>
+      <post>
+        <send_message>Kk1</send_message>
+        <next_state>W4W</next_state>
+        <channel>cr</channel>
+      </post>
+    </rule>
+
+    <rule id="W5W__Kk1__OUTBOUND">
+      <pre>
+        <current_state>W5W</current_state>
+      </pre>
+      <post>
+        <send_message>Kk1</send_message>
+        <next_state>W6W</next_state>
+        <channel>cr</channel>
+      </post>
+    </rule>
+
+    <rule id="W6W__Kk1__OUTBOUND">
+      <pre>
+        <current_state>W6W</current_state>
+      </pre>
+      <post>
+        <send_message>Kk1</send_message>
+        <next_state>W6W</next_state>
+        <channel>cr</channel>
+      </post>
+    </rule>
+
+    <rule id="W3W__Kklast__OUTBOUND">
+      <pre>
+        <current_state>W3W</current_state>
+      </pre>
+      <post>
+        <send_message>Kklast</send_message>
+        <next_state>W7W</next_state>
+        <channel>cr</channel>
+      </post>
+    </rule>
+
+    <rule id="W5W__Kklast__OUTBOUND">
+      <pre>
+        <current_state>W5W</current_state>
+      </pre>
+      <post>
+        <send_message>Kklast</send_message>
+        <next_state>W7W</next_state>
+        <channel>cr</channel>
+      </post>
+    </rule>
+
+    <rule id="W7W__Kklast__OUTBOUND">
+      <pre>
+        <current_state>W7W</current_state>
+      </pre>
+      <post>
+        <send_message>Kklast</send_message>
+        <next_state>W7W</next_state>
+        <channel>cr</channel>
+      </post>
+    </rule>
+
+    <rule id="W2W__Llfirst__INBOUND">
+      <pre>
+        <current_state>W2W</current_state>
+        <received_message>Llfirst</received_message>
+        <channel>cs</channel>
+      </pre>
+      <post>
+        <next_state>W3W</next_state>
+      </post>
+    </rule>
+
+    <rule id="W4W__Llfirst__INBOUND">
+      <pre>
+        <current_state>W4W</current_state>
+        <received_message>Llfirst</received_message>
+        <channel>cs</channel>
+      </pre>
+      <post>
+        <next_state>W4W</next_state>
+      </post>
+    </rule>
+
+    <rule id="W6W__Llfirst__INBOUND">
+      <pre>
+        <current_state>W6W</current_state>
+        <received_message>Llfirst</received_message>
+        <channel>cs</channel>
+      </pre>
+      <post>
+        <next_state>W6W</next_state>
+      </post>
+    </rule>
+
+    <rule id="W7W__Llfirst__INBOUND">
+      <pre>
+        <current_state>W7W</current_state>
+        <received_message>Llfirst</received_message>
+        <channel>cs</channel>
+      </pre>
+      <post>
+        <next_state>W7W</next_state>
+      </post>
+    </rule>
+
+    <rule id="W2W__Ll0__INBOUND">
+      <pre>
+        <current_state>W2W</current_state>
+        <received_message>Ll0</received_message>
+        <channel>cs</channel>
+      </pre>
+      <post>
+        <next_state>W2W</next_state>
+      </post>
+    </rule>
+
+    <rule id="W4W__Ll0__INBOUND">
+      <pre>
+        <current_state>W4W</current_state>
+        <received_message>Ll0</received_message>
+        <channel>cs</channel>
+      </pre>
+      <post>
+        <next_state>W5W</next_state>
+      </post>
+    </rule>
+
+    <rule id="W6W__Ll0__INBOUND">
+      <pre>
+        <current_state>W6W</current_state>
+        <received_message>Ll0</received_message>
+        <channel>cs</channel>
+      </pre>
+      <post>
+        <next_state>W6W</next_state>
+      </post>
+    </rule>
+
+    <rule id="W7W__Ll0__INBOUND">
+      <pre>
+        <current_state>W7W</current_state>
+        <received_message>Ll0</received_message>
+        <channel>cs</channel>
+      </pre>
+      <post>
+        <next_state>W7W</next_state>
+      </post>
+    </rule>
+
+    <rule id="W2W__Ll1__INBOUND">
+      <pre>
+        <current_state>W2W</current_state>
+        <received_message>Ll1</received_message>
+        <channel>cs</channel>
+      </pre>
+      <post>
+        <next_state>W2W</next_state>
+      </post>
+    </rule>
+
+    <rule id="W4W__Ll1__INBOUND">
+      <pre>
+        <current_state>W4W</current_state>
+        <received_message>Ll1</received_message>
+        <channel>cs</channel>
+      </pre>
+      <post>
+        <next_state>W4W</next_state>
+      </post>
+    </rule>
+
+    <rule id="W6W__Ll1__INBOUND">
+      <pre>
+        <current_state>W6W</current_state>
+        <received_message>Ll1</received_message>
+        <channel>cs</channel>
+      </pre>
+      <post>
+        <next_state>W3W</next_state>
+      </post>
+    </rule>
+
+    <rule id="W7W__Ll1__INBOUND">
+      <pre>
+        <current_state>W7W</current_state>
+        <received_message>Ll1</received_message>
+        <channel>cs</channel>
+      </pre>
+      <post>
+        <next_state>W7W</next_state>
+      </post>
+    </rule>
+
+    <rule id="W2W__Lllast__INBOUND">
+      <pre>
+        <current_state>W2W</current_state>
+        <received_message>Lllast</received_message>
+        <channel>cs</channel>
+      </pre>
+      <post>
+        <next_state>W2W</next_state>
+      </post>
+    </rule>
+
+    <rule id="W4W__Lllast__INBOUND">
+      <pre>
+        <current_state>W4W</current_state>
+        <received_message>Lllast</received_message>
+        <channel>cs</channel>
+      </pre>
+      <post>
+        <next_state>W4W</next_state>
+      </post>
+    </rule>
+
+    <rule id="W6W__Lllast__INBOUND">
+      <pre>
+        <current_state>W6W</current_state>
+        <received_message>Lllast</received_message>
+        <channel>cs</channel>
+      </pre>
+      <post>
+        <next_state>W6W</next_state>
+      </post>
+    </rule>
+
+    <rule id="W7W__Lllast__INBOUND">
+      <pre>
+        <current_state>W7W</current_state>
+        <received_message>Lllast</received_message>
+        <channel>cs</channel>
+      </pre>
+      <post>
+        <next_state>W8W</next_state>
+      </post>
+    </rule>
+
+    <rule id="W8W__Lllast__INBOUND">
+      <pre>
+        <current_state>W8W</current_state>
+        <received_message>Lllast</received_message>
+        <channel>cs</channel>
+      </pre>
+      <post>
+        <next_state>W8W</next_state>
+      </post>
+    </rule>
+
+    <rule id="W2W__LlS__OUTBOUND">
+      <pre>
+        <current_state>W2W</current_state>
+      </pre>
+      <post>
+        <send_message>LlS</send_message>
+        <next_state>WI0W</next_state>
+        <channel>cr</channel>
+      </post>
+    </rule>
+
+    <rule id="W4W__LlS__OUTBOUND">
+      <pre>
+        <current_state>W4W</current_state>
+      </pre>
+      <post>
+        <send_message>LlS</send_message>
+        <next_state>WI0W</next_state>
+        <channel>cr</channel>
+      </post>
+    </rule>
+
+    <rule id="W6W__LlS__OUTBOUND">
+      <pre>
+        <current_state>W6W</current_state>
+      </pre>
+      <post>
+        <send_message>LlS</send_message>
+        <next_state>WI0W</next_state>
+        <channel>cr</channel>
+      </post>
+    </rule>
+
+    <rule id="W7W__LlS__OUTBOUND">
+      <pre>
+        <current_state>W7W</current_state>
+      </pre>
+      <post>
+        <send_message>LlS</send_message>
+        <next_state>WI0W</next_state>
+        <channel>cr</channel>
+      </post>
+    </rule>
+
+    <rule id="WI6W__LlS__OUTBOUND">
+      <pre>
+        <current_state>WI6W</current_state>
+      </pre>
+      <post>
+        <send_message>LlS</send_message>
+        <next_state>WI7W</next_state>
+        <channel>cr</channel>
+      </post>
+    </rule>
+
+    <rule id="WI0W__LlS__INBOUND">
+      <pre>
+        <current_state>WI0W</current_state>
+        <received_message>LlS</received_message>
+        <channel>cs</channel>
+      </pre>
+      <post>
+        <next_state>WI1W</next_state>
+      </post>
+    </rule>
+
+    <rule id="WI7W__LlS__INBOUND">
+      <pre>
+        <current_state>WI7W</current_state>
+        <received_message>LlS</received_message>
+        <channel>cs</channel>
+      </pre>
+      <post>
+        <next_state>WI8W</next_state>
+      </post>
+    </rule>
+
+    <rule id="WI1W__Aaf__INBOUND">
+      <pre>
+        <current_state>WI1W</current_state>
+        <received_message>Aaf</received_message>
+        <channel>cs</channel>
+      </pre>
+      <post>
+        <next_state>WI2W</next_state>
+      </post>
+    </rule>
+
+    <rule id="WI8W__Aaf__INBOUND">
+      <pre>
+        <current_state>WI8W</current_state>
+        <received_message>Aaf</received_message>
+        <channel>cs</channel>
+      </pre>
+      <post>
+        <next_state>WI9W</next_state>
+      </post>
+    </rule>
+
+    <rule id="WI1W__Aat__INBOUND">
+      <pre>
+        <current_state>WI1W</current_state>
+        <received_message>Aat</received_message>
+        <channel>cs</channel>
+      </pre>
+      <post>
+        <next_state>WI2W</next_state>
+      </post>
+    </rule>
+
+    <rule id="WI8W__Aat__INBOUND">
+      <pre>
+        <current_state>WI8W</current_state>
+        <received_message>Aat</received_message>
+        <channel>cs</channel>
+      </pre>
+      <post>
+        <next_state>WI9W</next_state>
+      </post>
+    </rule>
+
+    <rule id="W0W__Aaf__OUTBOUND">
+      <pre>
+        <current_state>W0W</current_state>
+      </pre>
+      <post>
+        <send_message>Aaf</send_message>
+        <next_state>WIAW</next_state>
+        <channel>cr</channel>
+      </post>
+    </rule>
+
+    <rule id="WI9W__Aaf__OUTBOUND">
+      <pre>
+        <current_state>WI9W</current_state>
+      </pre>
+      <post>
+        <send_message>Aaf</send_message>
+        <next_state>W0W</next_state>
+        <channel>cr</channel>
+      </post>
+    </rule>
+
+    <rule id="WI2W__Aat__OUTBOUND">
+      <pre>
+        <current_state>WI2W</current_state>
+      </pre>
+      <post>
+        <send_message>Aat</send_message>
+        <next_state>W9W</next_state>
+        <channel>cr</channel>
+      </post>
+    </rule>
+
+    <rule id="W8W__Rrf__INBOUND">
+      <pre>
+        <current_state>W8W</current_state>
+        <received_message>Rrf</received_message>
+      </pre>
+      <post>
+        <next_state>WI3W</next_state>
+      </post>
+    </rule>
+
+    <rule id="W9W__Rrf__INBOUND">
+      <pre>
+        <current_state>W9W</current_state>
+        <received_message>Rrf</received_message>
+        <channel>cs</channel>
+      </pre>
+      <post>
+        <next_state>WI3W</next_state>
+      </post>
+    </rule>
+
+    <rule id="WI3W__Rrf__OUTBOUND">
+      <pre>
+        <current_state>WI3W</current_state>
+      </pre>
+      <post>
+        <send_message>Rrf</send_message>
+        <next_state>WI4W</next_state>
+        <channel>cr</channel>
+      </post>
+    </rule>
+
+    <rule id="WIAW__Rrf__OUTBOUND">
+      <pre>
+        <current_state>WIAW</current_state>
+      </pre>
+      <post>
+        <send_message>Rrf</send_message>
+        <next_state>WIRW</next_state>
+        <channel>cr</channel>
+      </post>
+    </rule>
+
+    <rule id="WI4W__KS__OUTBOUND">
+      <pre>
+        <current_state>WI4W</current_state>
+      </pre>
+      <post>
+        <send_message>KS</send_message>
+        <next_state>WI5W</next_state>
+        <channel>cr</channel>
+      </post>
+    </rule>
+
+    <rule id="WI5W__KS__INBOUND">
+      <pre>
+        <current_state>WI5W</current_state>
+        <received_message>KS</received_message>
+        <channel>cs</channel>
+      </pre>
+      <post>
+        <next_state>WI6W</next_state>
+      </post>
+    </rule>
+
+  </role>
+</protocol>

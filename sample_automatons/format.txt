@@ -1,0 +1,38 @@
+% This file explains the input format used to describe systems.
+% Any file starting with a '%' is a comment and will be ignored.
+% The first line of the file contains the name of the protocol
+Example protocol
+%
+% After the first line, automatons are inputted
+% The first line of an automaton contains its name
+Example Automaton 1
+%
+% The other lines represent the transitions, start-state and end-states
+%
+% This defines A as the start-state. Only one start-state is allowed
+> A
+%
+% This creates a Nop-transition to B
+A > B
+%
+% This creates a Send-transition sending 'y' over channel 'x'
+B x!y> A
+%
+% This creates a Receive-transition receiving 'z' from channel 'x'
+B x?z> C
+%
+% This defines C as the end-state. Multiple end states are allowed
+C >
+%
+% Automatons are separated by a comma
+,
+Example Automaton 2
+> A
+A x?y> B
+B > C
+B x!y> D
+C > D
+D x!z> E
+E > B
+% This automaton does not specify an end state. That means all states are considered end states
+% Note that messages and states are not explicitly defined.

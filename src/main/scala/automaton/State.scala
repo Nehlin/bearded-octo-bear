@@ -36,6 +36,13 @@ class State(n:String, ind:Option[Int]) {
   def copy: State = {
     new State(nameString, index)
   }
+
+  override def equals(o: Any) = o match {
+    case state: State => state.nameString == nameString && state.index == index
+    case _ => false
+  }
+
+  override def hashCode = name.hashCode
 }
 
 object State {

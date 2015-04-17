@@ -1,0 +1,23 @@
+Knorr:2
+Receiver
+> Apa
+Apa a?d> Bergsget
+Bergsget b!b> C
+C a?c> D
+D a?d> E
+E >
+,
+Sender
+> A
+A a!c> F
+A a!d> F
+F b?b> G
+G a!c> I
+G a!d> I
+I a!c> J
+I a!d> J
+A >
+F >
+G >
+I >
+J >

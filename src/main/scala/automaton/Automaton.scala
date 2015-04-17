@@ -1,7 +1,7 @@
 package automaton
 
 import scala.io.Source
-import scala.xml.{Elem, Node, NodeSeq}
+import scala.xml.{XML, Elem, Node, NodeSeq}
 import scala.collection.mutable.{Map => MMap}
 import scala.collection.mutable.{Set => MSet}
 
@@ -87,8 +87,17 @@ class Automaton(sMap: Map[String, State],
    * @param state   The starting state.
    * @return        All transitions in the automaton starting in the state.
    */
-  def transitions(state: State): Set[Transition] = {
+  def outgoingTransitions(state: State): Set[Transition] = {
     transitions.filter(t => t.from == state.name)
+  }
+
+  /**
+   * Returns all transitions targeting a state.
+   * @param state   The target state.
+   * @return        All transitions in the automaton ending in the state.
+   */
+  def incomingTransitions(state: State): Set[Transition] = {
+    transitions.filter(t => t.to == state.name)
   }
 
   /**
@@ -100,7 +109,7 @@ class Automaton(sMap: Map[String, State],
    * @return        All transitions starting in the state, in a sorted array.
    */
   def sortedTransitions(state: State): Array[Transition] = {
-    transitions(state).toArray.sortBy(_.toString)
+    outgoingTransitions(state).toArray.sortBy(_.toString)
   }
 
   /**
@@ -186,7 +195,7 @@ class Automaton(sMap: Map[String, State],
       seen.add(u)
       time += 1
       discovered(u) = time
-      for (t <- transitions(u)) {
+      for (t <- outgoingTransitions(u)) {
         val v = to(t)
         if (!seen.contains(v)) {
           visit(startState, v)
@@ -212,8 +221,16 @@ class Automaton(sMap: Map[String, State],
       throw new RuntimeException("No initial state specified when searching for reachable states.")
     }
 
+    reachableStatesFrom(initialState.get)
+  }
+
+  /**
+   * @param startState the state to use as start-state when finding reachable states.
+   * @return All states that are reachable from startState.
+   */
+  def reachableStatesFrom(startState: State): Set[State] = {
     val ackSet = MSet[State]()
-    val initialArray = Array[State](initialState.get)
+    val initialArray = Array[State](startState)
 
     def f (x:State, s:State) : Unit = ackSet.add(s)
 
@@ -279,6 +296,59 @@ class Automaton(sMap: Map[String, State],
   }
 
   /**
+   * Removes any unreachable/meaningless states. States are unreachable if they are not reachable from the initial
+   * state. States are meaningless if they cannot be a part of any path leading from the initial state to any end
+   * state. If the initial state or all end states are removed the automaton is meaningless and None will be returned
+   *
+   * @param endStates A set of states representing the valid end states.
+   * @return An option that contains the trimmed automaton, or None if trimming renders the automaton meaningless.
+   */
+  def trimmedCopy(endStates: Set[State]): Option[Automaton] = {
+
+    val reachableEndNames = MSet[String]()
+    reachableEndNames ++= endStates.map(s => s.name)
+
+    def trimNormal(automaton: Automaton): Option[Automaton] = {
+      val trimmedAutomaton = automaton.reachableCopy
+      val trimmedStateNames = trimmedAutomaton.states.map(s => s.name)
+      reachableEndNames.retain(name => trimmedStateNames.contains(name))
+      if (reachableEndNames.nonEmpty) {
+        Some(trimmedAutomaton)
+      } else {
+        None
+      }
+    }
+
+    def trimTransposed(automaton: Automaton): Option[Automaton] = {
+      val startState = automaton.initialState.get
+      val transposed = automaton.transpose
+      val endStates = reachableEndNames.map(en => transposed.stateMap(en))
+      val reachableStates = endStates.map(es => transposed.reachableStatesFrom(es)).flatten
+
+      val newStateMap = reachableStates.map(state => (state.name, state.copy)).toMap
+
+      val newTransitions = transposed.transitions.filter(transition => {
+        newStateMap.contains(transition.from) && newStateMap.contains(transition.to)
+      }).map(_.copy)
+
+      if (reachableStates.contains(startState)) {
+        val trimmedAutomaton = new Automaton(newStateMap, newTransitions, initialName, index, automatonName)
+        Some(trimmedAutomaton.transpose)
+      } else {
+        None
+      }
+    }
+
+    val forwardTrimmed = trimNormal(this)
+    if (forwardTrimmed.isDefined) {
+      val doubleTrimmed = trimTransposed(forwardTrimmed.get)
+      doubleTrimmed
+    } else {
+      None
+    }
+  }
+
+  /**
    * @return A string representation of the automaton
    */
   override def toString = {
@@ -287,7 +357,7 @@ class Automaton(sMap: Map[String, State],
     val headerString = automatonName + (if (automatonName == "") "" else "\n")
     val nameString = initialState match {case Some(n) => "initial state: " + n + "\n" case _ => ""}
     val stateString = states.map(state => {
-      state + ":\n" + transitions(state).map(t => "  " + t + "\n").mkString
+      state + ":\n" + outgoingTransitions(state).map(t => "  " + t + "\n").mkString
     }).mkString
 
     headerString + nameString + stateString
@@ -435,7 +505,10 @@ class Automaton(sMap: Map[String, State],
     (normalised, reversedMap, newStates.size)
   }
 
-  def renameTransitions(channelMap: Map[String, String], messageMap: Map[String, String]): Automaton = {
+  def renameTransitions(channelMap: Map[String, String],
+                        messageMap: Map[String, String],
+                        stackMap: Map[String, String]): Automaton = {
+
     val newTransitions = transitions.map(transition => {
       val fromName = transition.fromName
       val fromIndex = transition.fromIndex
@@ -444,6 +517,8 @@ class Automaton(sMap: Map[String, State],
       val condition = transition.condition match {
         case Send(chn, msg) => Send(channelMap(chn), messageMap(msg))
         case Receive(chn, msg) => Receive(channelMap(chn), messageMap(msg))
+        case Push(msg) => Push(stackMap(msg))
+        case Pop(msg) => Pop(stackMap(msg))
         case Nop() => Nop()
       }
       new Transition(fromName, fromIndex, toName, toIndex, condition)
@@ -461,7 +536,7 @@ object Automaton {
     states.map(state => (state.name, state)).toMap
   }
 
-  def readAutomatonFile(fileName: String): List[(Automaton, List[String])] = {
+  def readAutomatonFile(fileName: String): List[(Automaton, List[String], Boolean)] = {
 
     val allLines = Source.fromFile(fileName).getLines().toList.map(_.trim).filter(l => !l.startsWith("%"))
     // TODO: extract meta data from head
@@ -491,23 +566,37 @@ object Automaton {
         val split = t.split(" ")
         val fromName = split(0)
         val toName = split(2)
-        val condStr = split(1)
+        val condStr = split(1).stripSuffix(">")
         val condition = if (condStr.contains('!')) {
-          val chn = condStr.split('!')(0)
-          val msg = condStr.split('!')(1)
+          val cSplit = condStr.split('!')
+          val chn = cSplit(0)
+          val msg = if (cSplit.length > 1) { cSplit(1) } else { "" }
           Send(chn, msg)
         } else if (condStr.contains('?')) {
-          val chn = condStr.split('?')(0)
-          val msg = condStr.split('?')(1)
+          val cSplit = condStr.split('?')
+          val chn = cSplit(0)
+          val msg = if (cSplit.length > 1) { cSplit(1) } else { "" }
           Receive(chn, msg)
+        } else if (condStr.contains('+')) {
+          val msg = condStr.stripPrefix("+")
+          Push(msg)
+        } else if (condStr.contains('-')) {
+          val msg = condStr.stripPrefix("-")
+          Pop(msg)
         } else {
           Nop()
         }
         new Transition(fromName, toName, condition)
       }).toSet
 
+      val (endStateNames, hasEndStates) = if (endNames.nonEmpty) {
+        (endNames, true)
+      } else {
+        (stateNames, false)
+      }
+
       val stateMap = stateNames.map(sName => (sName, new State(sName, None))).toMap
-      (new Automaton(stateMap, transitions, Some(startName, None), None, name), endNames)
+      (new Automaton(stateMap, transitions, Some(startName, None), None, name), endStateNames, hasEndStates)
     })
     automatons
   }
@@ -558,5 +647,82 @@ object Automaton {
       automaton1.initialName, automaton2.index, automaton1.automatonName)
 
     (combined, newTransitions.toSet)
+  }
+
+  /**
+   * Creates an automaton from a xml-document.
+   *
+   * @param filename The file name of the xml-document.
+   * @return         An automaton matching the data contained in the xml-document.
+   */
+  def fromXml(filename: String): Automaton = {
+
+    val xml = XML.loadFile(filename)
+    val process = (xml \\ "protocol" \\ "role").head
+    /**
+     * Extracts the name of the initial state from the XML.
+     *
+     * Since an initial state is required, this method will throw an error if none is found.
+     *
+     * @param states  The NodeSeq containing the states of the automaton.
+     * @return        The name of the initial state.
+     */
+    def getInitialStateName(states: NodeSeq): String = {
+      if (states.isEmpty)
+        throw new RuntimeException("No initial state found")
+      else if ((states.head \\ "@type").text == "initial")
+        states.head.child.text
+      else
+        getInitialStateName(states.tail)
+    }
+
+    def getSpecificRule(path: String,
+                                messageName: String)
+                               (rule:Node): Option[(String, String)] = {
+
+      val post = (rule \ path).head
+      val messageNode = post \ messageName
+      val channelNode = post \ "channel"
+      if (messageNode.isEmpty || channelNode.isEmpty)
+        None
+      else {
+        val message = messageNode.head.text
+        val channel = channelNode.head.text
+        Some(channel, message)
+      }
+    }
+
+    def getSend = getSpecificRule("post", "send_message")_
+    def getReceive = getSpecificRule("pre", "received_message")_
+
+    def getRule(rule: Node): TransitionCondition = {
+      val send = getSend(rule)
+      val receive = getReceive(rule)
+      (send, receive) match {
+        case (Some((channel, message)), _) => Send(channel, message)
+        case (_, Some((channel, message))) => Receive(channel, message)
+        case _ => Nop()
+      }
+    }
+
+    val states = process \ "states" \ "state"
+    val stateMap = states.map(s => (s.child.text, new State(s.child.text, None))).toMap
+
+    val rules = process \\ "rule"
+    val transitions = rules.map(rule => {
+      val fromStateName = (rule \\ "pre" \\ "current_state").head.child.text
+      val toStateName = (rule \\ "post" \\ "next_state").head.child.text
+
+      val fromState = stateMap(fromStateName)
+      val toState = stateMap(toStateName)
+
+      val tRule = getRule(rule)
+      new Transition(fromState, toState, tRule)
+    }).toSet
+
+    val initialStateName = getInitialStateName(states)
+
+    val automatonName = (process \ "@name").toString()
+    new Automaton(stateMap, transitions, Some(initialStateName, None), None, automatonName)
   }
 }

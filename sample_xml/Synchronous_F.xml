@@ -1,0 +1,167 @@
+<protocol name="Protocol Name" medium="SET" capacity="4">
+  <messages>
+     <message>ack0</message>
+     <message>ack1</message>
+     <message>msg0</message>
+     <message>msg1</message>
+  </messages>
+  <channels>
+     <channel>c1</channel>
+     <channel>c2</channel>
+  </channels>
+
+  <role name="A">
+    <states>
+      <state type="initial">A0A</state>
+      <state>A1A</state>
+      <state>A2A</state>
+      <state>A3A</state>
+      <state>A4A</state>
+      <state>A5A</state>
+      <state>Invalid</state>
+    </states>
+    <rule id="A0A__msg0__OUTBOUND">
+      <pre>
+        <current_state>A0A</current_state>
+      </pre>
+      <post>
+        <send_message>msg0</send_message>
+        <next_state>A1A</next_state>
+        <channel>c1</channel>
+      </post>
+    </rule>
+
+    <rule id="A4A__msg0__OUTBOUND">
+      <pre>
+        <current_state>A4A</current_state>
+      </pre>
+      <post>
+        <send_message>msg0</send_message>
+        <next_state>A5A</next_state>
+        <channel>c1</channel>
+      </post>
+    </rule>
+
+    <rule id="A2A__msg1__OUTBOUND">
+      <pre>
+        <current_state>A2A</current_state>
+      </pre>
+      <post>
+        <send_message>msg1</send_message>
+        <next_state>A3A</next_state>
+        <channel>c1</channel>
+      </post>
+    </rule>
+
+    <rule id="A4A__msg1__OUTBOUND">
+      <pre>
+        <current_state>A4A</current_state>
+      </pre>
+      <post>
+        <send_message>msg1</send_message>
+        <next_state>A5A</next_state>
+        <channel>c1</channel>
+      </post>
+    </rule>
+
+    <rule id="A1A__ack0__INBOUND">
+      <pre>
+        <current_state>A1A</current_state>
+        <received_message>ack0</received_message>
+        <channel>c2</channel>
+      </pre>
+      <post>
+        <next_state>A2A</next_state>
+      </post>
+    </rule>
+
+    <rule id="A3A__ack1__INBOUND">
+      <pre>
+        <current_state>A3A</current_state>
+        <received_message>ack1</received_message>
+        <channel>c2</channel>
+      </pre>
+      <post>
+        <next_state>A4A</next_state>
+      </post>
+    </rule>
+
+  </role>
+  <role name="B">
+    <states>
+      <state type="initial">B0B</state>
+      <state>B1B</state>
+      <state>B2B</state>
+      <state>B3B</state>
+      <state>B4B</state>
+      <state>B5B</state>
+      <state>Invalid</state>
+    </states>
+    <rule id="B0B__msg0__INBOUND">
+      <pre>
+        <current_state>B0B</current_state>
+        <received_message>msg0</received_message>
+        <channel>c1</channel>
+      </pre>
+      <post>
+        <next_state>B1B</next_state>
+      </post>
+    </rule>
+
+    <rule id="B4B__msg0__INBOUND">
+      <pre>
+        <current_state>B4B</current_state>
+        <received_message>msg0</received_message>
+        <channel>c1</channel>
+      </pre>
+      <post>
+        <next_state>B5B</next_state>
+      </post>
+    </rule>
+
+    <rule id="B2B__msg1__INBOUND">
+      <pre>
+        <current_state>B2B</current_state>
+        <received_message>msg1</received_message>
+        <channel>c1</channel>
+      </pre>
+      <post>
+        <next_state>B3B</next_state>
+      </post>
+    </rule>
+
+    <rule id="B4B__msg1__INBOUND">
+      <pre>
+        <current_state>B4B</current_state>
+        <received_message>msg1</received_message>
+        <channel>c1</channel>
+      </pre>
+      <post>
+        <next_state>Invalid</next_state>
+      </post>
+    </rule>
+
+    <rule id="B1B__ack0__OUTBOUND">
+      <pre>
+        <current_state>B1B</current_state>
+      </pre>
+      <post>
+        <send_message>ack0</send_message>
+        <next_state>B2B</next_state>
+        <channel>c2</channel>
+      </post>
+    </rule>
+
+    <rule id="B3B__ack1__OUTBOUND">
+      <pre>
+        <current_state>B3B</current_state>
+      </pre>
+      <post>
+        <send_message>ack1</send_message>
+        <next_state>B4B</next_state>
+        <channel>c2</channel>
+      </post>
+    </rule>
+
+  </role>
+</protocol>

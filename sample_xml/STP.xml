@@ -1,0 +1,187 @@
+<protocol name="STP" medium="STUTT_FIFO" capacity="4">
+  <messages>
+     <message type="unordered">exitB</message>
+     <message>exitC</message>
+     <message>exitedB</message>
+     <message>exitedC</message>
+     <message>preparingB</message>
+  </messages>
+  <channels>
+     <channel>c1</channel>
+     <channel>c2</channel>
+     <channel>c3</channel>
+  </channels>
+
+  <role name="A">
+    <states>
+      <state type="initial">Active</state>
+      <state>AwaitingB</state>
+      <state type="final">Ended</state>
+      <state>Invalid</state>
+    </states>
+    <rule id="Active__exitB__OUTBOUND">
+      <pre>
+        <current_state>Active</current_state>
+      </pre>
+      <post>
+        <send_message>exitB</send_message>
+        <next_state>Active</next_state>
+        <channel>c1</channel>
+      </post>
+    </rule>
+
+    <rule id="Active__preparingB__INBOUND">
+      <pre>
+        <current_state>Active</current_state>
+        <received_message>preparingB</received_message>
+        <channel>c3</channel>
+      </pre>
+      <post>
+        <next_state>AwaitingB</next_state>
+      </post>
+    </rule>
+
+    <rule id="AwaitingB__preparingB__INBOUND">
+      <pre>
+        <current_state>AwaitingB</current_state>
+        <received_message>preparingB</received_message>
+        <channel>c3</channel>
+      </pre>
+      <post>
+        <next_state>AwaitingB</next_state>
+      </post>
+    </rule>
+
+    <rule id="Ended__preparingB__INBOUND">
+      <pre>
+        <current_state>Ended</current_state>
+        <received_message>preparingB</received_message>
+        <channel>c3</channel>
+      </pre>
+      <post>
+        <next_state>Invalid</next_state>
+      </post>
+    </rule>
+
+    <rule id="AwaitingB__exitedB__INBOUND">
+      <pre>
+        <current_state>AwaitingB</current_state>
+        <received_message>exitedB</received_message>
+        <channel>c2</channel>
+      </pre>
+      <post>
+        <next_state>Ended</next_state>
+      </post>
+    </rule>
+
+    <rule id="Ended__exitedB__INBOUND">
+      <pre>
+        <current_state>Ended</current_state>
+        <received_message>exitedB</received_message>
+        <channel>c2</channel>
+      </pre>
+      <post>
+        <next_state>Ended</next_state>
+      </post>
+    </rule>
+
+  </role>
+  <role name="B">
+    <states>
+      <state type="initial">Active</state>
+      <state>AwaitingC</state>
+      <state type="final">Ended</state>
+      <state>Invalid</state>
+    </states>
+    <rule id="AwaitingC__preparingB__OUTBOUND">
+      <pre>
+        <current_state>AwaitingC</current_state>
+      </pre>
+      <post>
+        <send_message>preparingB</send_message>
+        <next_state>AwaitingC</next_state>
+        <channel>c3</channel>
+      </post>
+    </rule>
+
+    <rule id="AwaitingC__exitC__OUTBOUND">
+      <pre>
+        <current_state>AwaitingC</current_state>
+      </pre>
+      <post>
+        <send_message>exitC</send_message>
+        <next_state>AwaitingC</next_state>
+        <channel>c1</channel>
+      </post>
+    </rule>
+
+    <rule id="Ended__exitedB__OUTBOUND">
+      <pre>
+        <current_state>Ended</current_state>
+      </pre>
+      <post>
+        <send_message>exitedB</send_message>
+        <next_state>Ended</next_state>
+        <channel>c2</channel>
+      </post>
+    </rule>
+
+    <rule id="Active__exitB__INBOUND">
+      <pre>
+        <current_state>Active</current_state>
+        <received_message>exitB</received_message>
+        <channel>c1</channel>
+      </pre>
+      <post>
+        <send_message>preparingB</send_message>
+        <next_state>AwaitingC</next_state>
+        <channel>c3</channel>
+      </post>
+    </rule>
+
+    <rule id="AwaitingC__exitedC__INBOUND">
+      <pre>
+        <current_state>AwaitingC</current_state>
+        <received_message>exitedC</received_message>
+        <channel>c2</channel>
+      </pre>
+      <post>
+        <send_message>exitedB</send_message>
+        <next_state>Ended</next_state>
+        <channel>c2</channel>
+      </post>
+    </rule>
+
+  </role>
+  <role name="C">
+    <states>
+      <state type="initial">Active</state>
+      <state type="final">Ended</state>
+      <state>Invalid</state>
+    </states>
+    <rule id="Ended__exitedC__OUTBOUND">
+      <pre>
+        <current_state>Ended</current_state>
+      </pre>
+      <post>
+        <send_message>exitedC</send_message>
+        <next_state>Ended</next_state>
+        <channel>c2</channel>
+      </post>
+    </rule>
+
+    <rule id="Active__exitC__INBOUND">
+      <pre>
+        <current_state>Active</current_state>
+        <received_message>exitC</received_message>
+        <channel>c1</channel>
+      </pre>
+      <post>
+        <send_message>exitedC</send_message>
+        <next_state>Ended</next_state>
+        <channel>c2</channel>
+      </post>
+    </rule>
+
+  </role>
+</protocol>

@@ -1,0 +1,15 @@
+Push/Pop Example
+Auto
+> A
+A > Z
+Z <b> A
+A <a> B
+B >a> C
+B > D
+C <a> D
+D >a E
+C x?y> A
+E x?z> B
+E > F
+F >a G
+F >b> H

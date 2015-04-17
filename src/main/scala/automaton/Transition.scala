@@ -20,6 +20,12 @@ case class Send(channel: String, message: String) extends TransitionCondition('S
 case class Receive(channel: String, message: String) extends TransitionCondition('R') {
   override def toString = {channel + "?" + message}
 }
+case class Push(message: String) extends TransitionCondition('U') {
+  override def toString = {"push(" + message + ")"}
+}
+case class Pop(message: String) extends TransitionCondition('O') {
+  override def toString = {"pop(" + message + ")"}
+}
 case class Nop() extends TransitionCondition('N') {
   override def toString = {"Nop"}
 }
@@ -89,6 +95,8 @@ class Transition(fName: String, fIndex: Option[Int], tName: String, tIndex: Opti
    */
   def copy: Transition = new Transition(fromName, fromIndex, toName, toIndex, condition)
 
+  def nopCopy: Transition = new Transition(fromName, fromIndex, toName, toIndex, Nop())
+
   /**
    * Creates a copy of the transition where the indices of the from- and to-states are set to newIndex.
    *
@@ -97,7 +105,7 @@ class Transition(fName: String, fIndex: Option[Int], tName: String, tIndex: Opti
    */
   def copy(newIndex: Int): Transition = new Transition(fromName, Some(newIndex), toName, Some(newIndex), condition)
 
-  override def toString = from + " =" + cond + "=> " + to
+  override def toString = from + " " + cond + "> " + to
 
   /**
    * A tuple for comparing equality between transitions. Iff t1.compareId == t2.compareId, t1 and t2 represent the
@@ -106,4 +114,16 @@ class Transition(fName: String, fIndex: Option[Int], tName: String, tIndex: Opti
    * @return the comparison tuple.
    */
   def compareId = (from, to, condition)
+
+  override def equals(o: Any) = o match {
+    case t: Transition =>
+      t.fromName == fromName &&
+      t.fromIndex == fromIndex &&
+      t.toName == toName &&
+      t.toIndex == toIndex &&
+      t.condition.toString == condition.toString
+    case _ => false
+  }
+
+  override def hashCode = toString.hashCode
 }

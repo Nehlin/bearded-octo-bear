@@ -1,0 +1,12 @@
+Send experiments
+Auto_5
+> A
+A +a> B
+B -a> C
+C +b> D
+D +b> B
+B -b> E
+E +c> F
+F +c> B
+B -c> H
+H a!a> B

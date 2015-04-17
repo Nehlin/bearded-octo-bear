@@ -1,0 +1,26 @@
+STP:4
+A
+> Active
+Active c1!exitB> Active
+Active c3?preparingB> AwaitingB
+AwaitingB c3?preparingB> AwaitingB
+Ended c3?preparingB> Invalid
+AwaitingB c2?exitedB> Ended
+Ended c2?exitedB> Ended
+Invalid >
+,
+B
+> Active
+AwaitingC c3!preparingB> AwaitingC
+AwaitingC c1!exitC> AwaitingC
+Ended c2!exitedB> Ended
+Active c1?exitB> intermediate_0
+intermediate_0 c3!preparingB> AwaitingC
+AwaitingC c2?exitedC> intermediate_1
+intermediate_1 c2!exitedB> Ended
+,
+C
+> Active
+Ended c2!exitedC> Ended
+Active c1?exitC> intermediate_0
+intermediate_0 c2!exitedC> Ended
