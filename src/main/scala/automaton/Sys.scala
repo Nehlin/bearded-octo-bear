@@ -42,9 +42,9 @@ class Sys(automatonsWithEnd: List[(Automaton, List[String], Boolean)]) {
       }
     }).unzip
 
-    val channels = channelSet.toArray.sorted
-    val messages = messageSet.toArray.sorted
-    val stackMessages = stackSet.toArray.sorted
+    val channels = channelSet.toList.sorted
+    val messages = messageSet.toList.sorted
+    val stackMessages = stackSet.toList.sorted
 
     val channelMap = channels.zipWithIndex.map { case (name, ind) => (name, Util.makeIdentifier(ind))}.toMap
     val messageMap = messages.zipWithIndex.map { case (name, ind) => (name, Util.makeIdentifier(ind))}.toMap

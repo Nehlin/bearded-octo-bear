@@ -2,10 +2,12 @@ EX 1
 Ex_1
 > A
 A x!a> A
-A +b> B
-A z!b> C
-B z!b> B
-B +a> C
-C -a> C
-C -b> C
-C z!a> C
+A +b> C
+A z!b> B
+B x!b> A
+C z!b> C
+C +a> B
+B -a> B
+B -b> B
+B z!a> B
+C > D

@@ -1,0 +1,12 @@
+EX 3
+Ex_3
+> A
+A +a> A
+A z!c> B
+B -a> C
+B z!b> D
+B -b> E
+C z!a> B
+D x!b> D
+E > A
+E x!a> E

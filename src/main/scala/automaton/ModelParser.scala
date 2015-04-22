@@ -70,4 +70,21 @@ object ModelParser {
 
     validStatements.map(extractValue).flatten
   }
+
+  def parseTransition(transition: String): (String, String, String) = {
+    if (transition.contains("_Nop_")) {
+      val sp = transition.split("_Nop_")
+      (sp(0), sp(1), "")
+    } else {
+      val (sp, op) = if (transition.contains("_Rcv_")) {
+        (transition.split("_Rcv_"), "?")
+      } else {
+        (transition.split("_Snd_"), "!")
+      }
+      val fr = sp(0).split('_')
+      val to = sp(1).split('_')
+      (fr(0) + "_" + fr(1), to(1) + "_" + to(2), fr(2) + " " + op + " " + to(0))
+    }
+  }
+
 }

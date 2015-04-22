@@ -1,0 +1,14 @@
+EX 1
+Ex_1
+> A
+A x!a> B
+A +b> B
+B > A
+B -b> B
+B y!b> B
+B y!b> C
+C x!a> D
+D > A
+B +c> E
+E x!d> E
+E -c> B

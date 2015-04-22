@@ -6,6 +6,7 @@ import java.nio.file.{Paths, Files}
 import java.nio.charset.StandardCharsets
 import scala.collection.JavaConversions._
 import scala.sys.process._
+import scala.collection.mutable.{MutableList => MList}
 
 object Y {
 
@@ -52,6 +53,7 @@ object Y {
                       outputPhaseDot: Boolean,
                       outputPresburger: Boolean,
                       outputPathDot: Boolean,
+                      outputSequence: Boolean,
                       outputMap: Boolean): Unit = {
 
     val sys = new Sys(Automaton.readAutomatonFile(inputFile))
@@ -62,15 +64,20 @@ object Y {
       }
     }
 
-    if (outputPhaseDot) {
+    // To avoid double computing this if its used bot here and in the path
+    val phaseResult = if (outputPhaseDot) {
       val (reachable, autos, _) = sys.automatonsWithPhases(numPhases)
       if (reachable) {
         for (auto <- autos) {
           Files.write(Paths.get(resultDir + auto.automatonName + "_phase.dot"), Dot.make(auto).getBytes(StandardCharsets.UTF_8))
         }
+        Some(autos)
       } else {
         println("End state is unreachable, phase automatons not printed.")
+        None
       }
+    } else {
+      None
     }
 
     val presburgerResult = Presburger.makePresburger(sys, numPhases)
@@ -92,10 +99,15 @@ object Y {
       val channelMapString = sys.channelMap.keys.map(key => key + " => " + sys.channelMap(key)).toList.sorted.mkString("\n")
       val messageMapString = sys.messageMap.keys.map(key => key + " => " + sys.messageMap(key)).toList.sorted.mkString("\n")
 
+      val outputString =
+        "States:\n" +
+        stateMapString + "\n" +
+        "Channels:\n" +
+        channelMapString +
+        "Messages:\n" +
+        messageMapString
 
-
-
-      //Files.write(Paths.get(resultDir + "map.txt"), state.getBytes(StandardCharsets.UTF_8))
+      Files.write(Paths.get(resultDir + "map.txt"), outputString.getBytes(StandardCharsets.UTF_8))
     }
 
     val z3 = List(z3Path, "-in")
@@ -113,16 +125,73 @@ object Y {
       println("error:\n" + errors)
       scala.sys.exit(-1)
     }
+
+    if (outputPathDot) {
+      val phaseAutomatons = phaseResult.getOrElse{
+        val (_, autos, _) = sys.automatonsWithPhases(numPhases)
+        autos
+      }
+
+      val modelMap = ModelParser.parseZ3(model)
+
+      val occurrences = modelMap.filter{case (str, int) => str.startsWith("occ_") && int == 1}.map{case (str, _) => str.stripPrefix("occ_")}
+      val occTransitions = occurrences.map(sys.transitionFromVarName).toSet
+
+      for (auto <- phaseAutomatons) {
+        Files.write(Paths.get(resultDir + auto.automatonName + "_path.dot"),
+          Dot.makeHl2(auto, occTransitions).getBytes(StandardCharsets.UTF_8))
+      }
+    }
+
+    if (outputSequence) {
+      val modelMap = ModelParser.parseZ3(model)
+      val occurrences = modelMap.filter{case (str, int) => str.startsWith("occ_") && int == 1}.map{case (str, _) => str.stripPrefix("occ_")}
+
+      val sequence = modelMap.filter{case (str, _) => str.startsWith("seq_")}.toList.sortBy(_._2).map{case (str, _) => str.stripPrefix("seq_")}
+      val occurringSequences = sequence.filter(tStr => occurrences.contains(tStr))
+      if (occurringSequences.isEmpty) {
+        println("no occurring seq, this is probably wrong")
+      }
+
+
+    }
+  }
+
+  def pushdownReachability(inputFile: String,
+                           z3Path: String,
+                           numPhases: Int,
+                           resultDir: String,
+                           outputOriginalDot: Boolean,
+                           outputPresburger: Boolean,
+                           outputModel: Boolean,
+                           outputMap: Boolean): Unit = {
+
+    val (autos, _, _) = Automaton.readAutomatonFile(inputFile).unzip3
+    val auto = autos.head
+    Stack.makeGrammar(auto)
+    Stack.pushdownToNfa(auto)
+
+    //val (depAuto, _) = Stack.dependencyGraph(auto)
+    //Files.write(Paths.get(resultDir + depAuto.automatonName + "_dep.dot"), Dot.highlightScc(depAuto).getBytes(StandardCharsets.UTF_8))
+    //Files.write(Paths.get(resultDir + combAuto.automatonName + "_comb.dot"), Dot.highlightScc(combAuto).getBytes(StandardCharsets.UTF_8))
+    //Files.write(Paths.get(resultDir + addAuto.automatonName + "_added.dot"), Dot.highlightScc(addAuto).getBytes(StandardCharsets.UTF_8))
+
+    if (outputOriginalDot) {
+      for (auto <- autos) {
+        Files.write(Paths.get(resultDir + auto.automatonName + "_original.dot"), Dot.make(auto).getBytes(StandardCharsets.UTF_8))
+      }
+    }
+
   }
 
   def main(args:Array[String]) {
 
     // TODO: handle initial state being removed
 
-    val inputFile = "send_experiments/ex1.txt"
-    //val inputFile = "sample_automatons/knorr.txt"
+    val inputFile = "send_experiments/ex4.txt"
+    //val inputFile = "sample_automatons/ABP_F.txt"
     val resultDir = "result/"
-    val numPhases = 3
+    val numPhases = 6
 
     val optionFun = getOption(args)
     val z3PathOpt = optionFun("z3")
@@ -132,28 +201,21 @@ object Y {
     }
     val z3Path = z3PathOpt.get
 
-    //dfaReachability(inputFile, z3Path, numPhases, resultDir, true, false, true, true, true)
+    pushdownReachability(inputFile, z3Path, numPhases, resultDir, true, true, true, true)
+    //dfaReachability(inputFile, z3Path, numPhases, resultDir, true, false, true, true, true, true)
 
-    val sys = new Sys(Automaton.readAutomatonFile(inputFile))
-
-    /*Phase.getSaturationValuesWithTransforms(sys.automatons, sys.endStatesNormalised.flatten, numPhases,
-      Phase.noTransform, Phase.noTransform, Phase.noTransform)*/
-
-
-    val (autos, _, _) = Automaton.readAutomatonFile(inputFile).unzip3
-    val auto = autos.head
-    val (hoppo, hoppot) = Stack.hoppo(auto, 4)
-    val (x, y) = Stack.temp(auto)
+    //val sys = new Sys(Automaton.readAutomatonFile(inputFile))
 
 
 
-    Files.write(Paths.get(resultDir + auto.automatonName + ".dot"), Dot.make(auto).getBytes(StandardCharsets.UTF_8))
+
+    //Files.write(Paths.get(resultDir + auto.automatonName + ".dot"), Dot.make(auto).getBytes(StandardCharsets.UTF_8))
     //Files.write(Paths.get(resultDir + auto.automatonName + "_t.dot"), Dot.makeHl2(x, y).getBytes(StandardCharsets.UTF_8))
     //Files.write(Paths.get(resultDir + auto.automatonName + "_h.dot"), Dot.makeHl2(hoppo, hoppot).getBytes(StandardCharsets.UTF_8))
     //Files.write(Paths.get(resultDir + auto.automatonName + "_r.dot"), Dot.makeHl2(hoppo.reachableCopy, hoppot).getBytes(StandardCharsets.UTF_8))
 
     return
-
+/*
     val (_, autoWithPhases, _) = sys.automatonsWithPhases(numPhases)
     for (auto <- sys.automatons) {
       Files.write(Paths.get(resultDir + auto.automatonName + "_original.dot"),
@@ -195,7 +257,7 @@ object Y {
       println("error:\n" + errors)
       scala.sys.exit(-1)
     }
-
+*/
     /*
     val modelMap = ModelParser.parseZ3(model)
 

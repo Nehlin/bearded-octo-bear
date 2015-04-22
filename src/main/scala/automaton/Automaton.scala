@@ -101,26 +101,26 @@ class Automaton(sMap: Map[String, State],
   }
 
   /**
-   * Returns all transitions starting in a certain state as a sorted array. The actual ordering is  not important, this
+   * Returns all transitions starting in a certain state as a sorted list. The actual ordering is  not important, this
    * is used mostly since the ordering of transitions and states affect the generated .dot-files and sorting the
    * transitions according to any ordering guarantees that a certain graph always generate the same .dot-file.
    *
    * @param state   The start-state of the returned transitions
-   * @return        All transitions starting in the state, in a sorted array.
+   * @return        All transitions starting in the state, in a sorted list.
    */
-  def sortedTransitions(state: State): Array[Transition] = {
-    outgoingTransitions(state).toArray.sortBy(_.toString)
+  def sortedTransitions(state: State): List[Transition] = {
+    outgoingTransitions(state).toList.sortBy(_.toString)
   }
 
   /**
-   * Returns all transitions as a sorted array. The actual ordering is  not important, this is used mostly since the
+   * Returns all transitions as a sorted list. The actual ordering is  not important, this is used mostly since the
    * ordering of transitions and states affect the generated .dot-files and sorting the transitions according to any
    * ordering guarantees that a certain graph always generate the same .dot-file.
    *
-   * @return All transitions starting in the state, in a sorted array.
+   * @return All transitions starting in the state, in a sorted list.
    */
-  def sortedTransitions: Array[Transition] = {
-    transitions.toArray.sortBy(_.toString)
+  def sortedTransitions: List[Transition] = {
+    transitions.toList.sortBy(_.toString)
   }
 
   /**
@@ -129,9 +129,9 @@ class Automaton(sMap: Map[String, State],
   def states: Set[State] = stateMap.values.toSet
 
   /**
-   * @return An array containing all the states in the automaton, sorted by their names.
+   * @return A list containing all the states in the automaton, sorted by their names.
    */
-  def sortedStates: Array[State] = states.toArray.sortBy(_.name)
+  def sortedStates: List[State] = states.toList.sortBy(_.name)
 
   /**
    * @return All transitions in the automaton that are of the type Send.
@@ -165,9 +165,9 @@ class Automaton(sMap: Map[String, State],
   }
 
   /**
-   * Depth first search in an automaton. The dfs traverses the graph visiting each state once. The states-array
-   * represents the order in which to search the array. Searching will start in the first state of the array and
-   * continue until no more states can be found. Once that is done, the next un-discovered state from the array will be
+   * Depth first search in an automaton. The dfs traverses the graph visiting each state once. The states-list
+   * represents the order in which to search the list. Searching will start in the first state of the list and
+   * continue until no more states can be found. Once that is done, the next un-discovered state from the list will be
    * traversed. The search is depth first, which means that children are searched before siblings. A map where the
    * discovery- and finnish-time is saved for each state.
    *
@@ -175,11 +175,11 @@ class Automaton(sMap: Map[String, State],
    * sent the state where the traversal started that led the dfs to find the state, as well as the current visited
    * state.
    *
-   * @param states  The array that decides the order in which to traverse the graph.
+   * @param states  The list that decides the order in which to traverse the graph.
    * @param action  Optional. The function that gets called when each state is visited.
    * @return        A map containing the discovery- and finnish-time for each state.
    */
-  def dfs (states: Array[State],
+  def dfs (states: List[State],
            action: Option[((State, State)=>Unit)]): Map[State, (Int, Int)] = {
 
     var time = 0
@@ -230,11 +230,11 @@ class Automaton(sMap: Map[String, State],
    */
   def reachableStatesFrom(startState: State): Set[State] = {
     val ackSet = MSet[State]()
-    val initialArray = Array[State](startState)
+    val initialList = List[State](startState)
 
     def f (x:State, s:State) : Unit = ackSet.add(s)
 
-    dfs(initialArray, Some(f))
+    dfs(initialList, Some(f))
 
     ackSet.toSet
   }
@@ -246,20 +246,20 @@ class Automaton(sMap: Map[String, State],
    */
   def scc: Set[Set[State]] = {
     // runs dfs on states to get finish-time for all states
-    val dfsResult = dfs(states.toArray.sortBy(_.name), None)
+    val dfsResult = dfs(states.toList.sortBy(_.name), None)
 
-    // Converts to array of tuple (finish-time, state-name)
-    val unorderedNameArr = dfsResult.keys.map(s => (dfsResult(s)._2, s.name)).toArray
+    // Converts to list of tuple (finish-time, state-name)
+    val unorderedNameList = dfsResult.keys.map(s => (dfsResult(s)._2, s.name)).toList
 
-    // Sort the array in descending order by finish-time,
-    // remove finish time so array only contains states
-    val orderedNameArr = unorderedNameArr.sortBy(_._1).map(_._2).reverse
+    // Sort the list in descending order by finish-time,
+    // remove finish time so list only contains states
+    val orderedNameList = unorderedNameList.sortBy(_._1).map(_._2).reverse
 
-    // Create array containing the states from the transposed automaton,
-    // ordered as in orderedNameArr
+    // Create list containing the states from the transposed automaton,
+    // ordered as in orderedNameList
     val transposedAutomaton = transpose
     val transposedMap = transposedAutomaton.stateMap
-    val orderedStateArr = orderedNameArr.map(transposedMap(_))
+    val orderedStateArr = orderedNameList.map(transposedMap(_))
 
     val resultMap = MMap[String, MSet[State]]()
     def f(startState:State, state:State) : Unit = {

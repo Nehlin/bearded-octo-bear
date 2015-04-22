@@ -1,0 +1,18 @@
+Ex 4
+Ex_4
+> A
+A +a> B
+A b!b> B
+B -a> C
+C +b> D
+D +b> B
+B > E
+B a!a> E
+E +x> F
+E c!c> H
+F d!d> F
+F -x> G
+G > H
+I c!c> C
+H -b> I
+I a!a> H

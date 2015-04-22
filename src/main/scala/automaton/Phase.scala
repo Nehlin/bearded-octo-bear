@@ -207,7 +207,6 @@ object Phase {
    *                    self-loops
    *         map        a map translating names in 'automaton' to names in 'condensed'
    */
-  // TODO: make private.
   def condenseSendAutomaton(automaton: Automaton): (Automaton,
     Map[String, String]) = {
 
@@ -221,7 +220,7 @@ object Phase {
 
     def constructNewComponent(component:Set[State]): (Set[Transition]) = {
       val stateNames = component.map(_.name)
-      val combinedName = stateNames.toArray.sorted.mkString
+      val combinedName = stateNames.toList.sorted.mkString
       val combinedState = new State(combinedName, index)
 
       for (oldName <- stateNames) {
