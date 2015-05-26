@@ -57,6 +57,11 @@ class Transition(fName: String, fIndex: Option[Int], tName: String, tIndex: Opti
     this(fName, None, tName, None, cond)
   }
 
+  // No condition = Nop
+  def this(fName: String, tName: String) = {
+    this(fName, None, tName, None, Nop())
+  }
+
   val fromName = fName
   val fromIndex = fIndex
   val toName = tName
@@ -104,6 +109,24 @@ class Transition(fName: String, fIndex: Option[Int], tName: String, tIndex: Opti
    * @return          A copy of the transition with a new index for the states.
    */
   def copy(newIndex: Int): Transition = new Transition(fromName, Some(newIndex), toName, Some(newIndex), condition)
+
+  def startsIn(state: State): Boolean = {
+    from == state.name
+  }
+
+  def endsIn(state: State): Boolean = {
+    to == state.name
+  }
+
+  def links(s1: State, s2: State): Boolean = {
+    startsIn(s1) && endsIn(s2)
+  }
+
+  def isNop: Boolean = condition.isInstanceOf[Nop]
+  def isSend: Boolean = condition.isInstanceOf[Send]
+  def isReceive: Boolean = condition.isInstanceOf[Receive]
+  def isPush: Boolean = condition.isInstanceOf[Push]
+  def isPop: Boolean = condition.isInstanceOf[Pop]
 
   override def toString = from + " " + cond + "> " + to
 

@@ -3,6 +3,7 @@ target
 graph.dot
 .idea
 .send_experiments
+.rec_experiments
 ABP.xml
 dot
 .DS_Store

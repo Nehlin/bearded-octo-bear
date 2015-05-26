@@ -1,5 +1,5 @@
-EX 1
-Ex_1
+EX 2
+Ex_2
 > A
 A x!a> B
 A +b> B

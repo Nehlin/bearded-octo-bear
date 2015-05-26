@@ -1,0 +1,15 @@
+EX 5
+Ex_5
+> A
+A +a> B
+B -a> C
+C +b> D
+D +b> B
+B -b> E
+E +c> F
+F +c> B
+B -c> G
+G +d> H
+H +d> B
+B -d> I
+I a!a> B

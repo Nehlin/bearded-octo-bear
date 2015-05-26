@@ -1,0 +1,11 @@
+Re 1
+Re_1
+> A
+A +x> B
+B a?a> C
+C -x> D
+C +y> E
+D > B
+E b?b> A
+E -y> E
+E c?c> B

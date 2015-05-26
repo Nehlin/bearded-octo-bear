@@ -1,3 +1,9 @@
 z3=/Users/gordy/z3/bin/z3
-input=hej
-pres=y
+inputFile=rec_experiments/re1.txt
+numPhases=5
+outputDir=resulto
+outputPresburger=y
+outputOriginalDot=y
+outputModel=n
+outputMap=n
+isPushdown=y

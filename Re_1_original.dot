@@ -1,0 +1,86 @@
+digraph Automaton {
+  rankdir = LR;
+  A_0 [shape=circle,label="A_0"];
+  initial [shape=plaintext,label=""];
+  initial -> A_0
+  A_0 -> B_0 [label="push(A)"]
+  A_1 [shape=circle,label="A_1"];
+  A_1 -> B_1 [label="push(A)"]
+  A_2 [shape=circle,label="A_2"];
+  A_2 -> B_2 [label="push(A)"]
+  A_3 [shape=circle,label="A_3"];
+  A_3 -> B_3 [label="push(A)"]
+  A_4 [shape=circle,label="A_4"];
+  A_4 -> B_4 [label="push(A)"]
+  A_5 [shape=circle,label="A_5"];
+  A_5 -> B_5 [label="push(A)"]
+  B_0 [shape=circle,label="B_0"];
+  B_0 -> C_1 [label="A?A"]
+  B_1 [shape=circle,label="B_1"];
+  B_1 -> C_1 [label="A?A"]
+  B_2 [shape=circle,label="B_2"];
+  B_2 -> C_3 [label="A?A"]
+  B_3 [shape=circle,label="B_3"];
+  B_3 -> C_3 [label="A?A"]
+  B_4 [shape=circle,label="B_4"];
+  B_4 -> C_5 [label="A?A"]
+  B_5 [shape=circle,label="B_5"];
+  B_5 -> C_5 [label="A?A"]
+  C_0 [shape=circle,label="C_0"];
+  C_0 -> D_0 [label="pop(A)"]
+  C_0 -> E_0 [label="push(B)"]
+  C_1 [shape=circle,label="C_1"];
+  C_1 -> D_1 [label="pop(A)"]
+  C_1 -> E_1 [label="push(B)"]
+  C_2 [shape=circle,label="C_2"];
+  C_2 -> D_2 [label="pop(A)"]
+  C_2 -> E_2 [label="push(B)"]
+  C_3 [shape=circle,label="C_3"];
+  C_3 -> D_3 [label="pop(A)"]
+  C_3 -> E_3 [label="push(B)"]
+  C_4 [shape=circle,label="C_4"];
+  C_4 -> D_4 [label="pop(A)"]
+  C_4 -> E_4 [label="push(B)"]
+  C_5 [shape=circle,label="C_5"];
+  C_5 -> D_5 [label="pop(A)"]
+  C_5 -> E_5 [label="push(B)"]
+  D_0 [shape=circle,label="D_0"];
+  D_0 -> B_0 [label="Nop"]
+  D_1 [shape=circle,label="D_1"];
+  D_1 -> B_1 [label="Nop"]
+  D_2 [shape=circle,label="D_2"];
+  D_2 -> B_2 [label="Nop"]
+  D_3 [shape=circle,label="D_3"];
+  D_3 -> B_3 [label="Nop"]
+  D_4 [shape=circle,label="D_4"];
+  D_4 -> B_4 [label="Nop"]
+  D_5 [shape=circle,label="D_5"];
+  D_5 -> B_5 [label="Nop"]
+  E0_0 [shape=circle,label="E0_0"];
+  E0_0 -> A_1 [label="B?B"]
+  E0_0 -> B_1 [label="C?C"]
+  E0_2 [shape=circle,label="E0_2"];
+  E0_2 -> A_3 [label="B?B"]
+  E0_2 -> B_3 [label="C?C"]
+  E0_4 [shape=circle,label="E0_4"];
+  E0_4 -> A_5 [label="B?B"]
+  E0_4 -> B_5 [label="C?C"]
+  E_0 [shape=circle,label="E_0"];
+  E_0 -> E0_0 [label="Nop"]
+  E_1 [shape=circle,label="E_1"];
+  E_1 -> A_1 [label="B?B"]
+  E_1 -> B_1 [label="C?C"]
+  E_1 -> E_1 [label="pop(B)"]
+  E_2 [shape=circle,label="E_2"];
+  E_2 -> E0_2 [label="Nop"]
+  E_3 [shape=circle,label="E_3"];
+  E_3 -> A_3 [label="B?B"]
+  E_3 -> B_3 [label="C?C"]
+  E_3 -> E_3 [label="pop(B)"]
+  E_4 [shape=circle,label="E_4"];
+  E_4 -> E0_4 [label="Nop"]
+  E_5 [shape=circle,label="E_5"];
+  E_5 -> A_5 [label="B?B"]
+  E_5 -> B_5 [label="C?C"]
+  E_5 -> E_5 [label="pop(B)"]
+}

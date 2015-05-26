@@ -1,5 +1,7 @@
 package automaton
 
+import javafx.animation.Transition
+
 import scala.io.Source
 import scala.xml.{XML, Elem, Node, NodeSeq}
 import scala.collection.mutable.{Map => MMap}
@@ -21,11 +23,21 @@ class Automaton(sMap: Map[String, State],
                 i: Option[Int],
                 aName: String) {
 
+
+  def this(s: Set[State], t: Set[Transition], init: Option[State], aName: String) = {
+    this(s.map(st => (st.name, st)).toMap,
+      t,
+      if (init.isDefined) Some(init.get.nameString, init.get.index) else None,
+      None,
+      aName)
+  }
+
   val initialName = iName
   val index = i
   val stateMap = sMap
   val transitions = t
   val automatonName = aName
+
 
   /**
    * Returns the index of the initial state.
@@ -294,6 +306,16 @@ class Automaton(sMap: Map[String, State],
 
     new Automaton(newStateMap, newTransitions, initialName, index, automatonName)
   }
+
+  def copyWithStatesAndTransitions(states: MSet[State], transitions: MSet[Transition]): Automaton = {
+
+    val newStateMap = states.map(state => (state.name, state.copy)).toMap
+    val newTransitions = transitions.map(t => t.copy).toSet
+
+    new Automaton(newStateMap, newTransitions, initialName, index, automatonName)
+  }
+
+
 
   /**
    * Removes any unreachable/meaningless states. States are unreachable if they are not reachable from the initial
